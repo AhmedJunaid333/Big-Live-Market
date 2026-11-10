@@ -78,9 +78,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     margin: const EdgeInsets.only(bottom: AppTheme.space16),
                     padding: const EdgeInsets.all(AppTheme.space12),
                     decoration: BoxDecoration(
-                      color: AppTheme.errorRed.withOpacity(0.1),
+                      color: AppTheme.errorRed.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
-                      border: Border.all(color: AppTheme.errorRed.withOpacity(0.3)),
+                      border: Border.all(color: AppTheme.errorRed.withValues(alpha: 0.3)),
                     ),
                     child: Text(
                       authState.errorMessage!,

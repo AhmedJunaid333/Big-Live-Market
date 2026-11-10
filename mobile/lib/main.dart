@@ -124,7 +124,7 @@ class HomeFeedScreen extends ConsumerWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.inventory_2_outlined, size: 64, color: AppTheme.textSecondary.withOpacity(0.5)),
+                  Icon(Icons.inventory_2_outlined, size: 64, color: AppTheme.textSecondary.withValues(alpha: 0.5)),
                   const SizedBox(height: AppTheme.space16),
                   const Text(
                     'No active listings found',
@@ -157,7 +157,7 @@ class HomeFeedScreen extends ConsumerWidget {
                     width: 56,
                     height: 56,
                     decoration: BoxDecoration(
-                      color: AppTheme.brandBlue.withOpacity(0.08),
+                      color: AppTheme.brandBlue.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
                     ),
                     child: const Icon(Icons.image_outlined, color: AppTheme.brandBlue),
@@ -215,7 +215,7 @@ class PlaceholderScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 64, color: AppTheme.brandBlue.withOpacity(0.5)),
+            Icon(icon, size: 64, color: AppTheme.brandBlue.withValues(alpha: 0.5)),
             const SizedBox(height: AppTheme.space16),
             Text(
               title,
