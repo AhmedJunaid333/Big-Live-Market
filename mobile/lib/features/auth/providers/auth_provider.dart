@@ -1,0 +1,145 @@
+import 'package:dio/dio.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/network/api_client.dart';
+import '../models/user.dart';
+
+class AuthState {
+  final bool isAuthenticated;
+  final bool isLoading;
+  final User? user;
+  final String? errorMessage;
+
+  const AuthState({
+    this.isAuthenticated = false,
+    this.isLoading = false,
+    this.user,
+    this.errorMessage,
+  });
+
+  AuthState copyWith({
+    bool? isAuthenticated,
+    bool? isLoading,
+    User? user,
+    String? errorMessage,
+  }) {
+    return AuthState(
+      isAuthenticated: isAuthenticated ?? this.isAuthenticated,
+      isLoading: isLoading ?? this.isLoading,
+      user: user ?? this.user,
+      errorMessage: errorMessage,
+    );
+  }
+}
+
+class AuthNotifier extends StateNotifier<AuthState> {
+  final ApiClient _apiClient;
+
+  AuthNotifier(this._apiClient) : super(const AuthState()) {
+    checkAuthStatus();
+  }
+
+  Future<void> checkAuthStatus() async {
+    final token = await _apiClient.storage.read(key: 'auth_token');
+    if (token == null) {
+      state = state.copyWith(isAuthenticated: false);
+      return;
+    }
+
+    try {
+      final response = await _apiClient.dio.get('/me');
+      final userData = response.data['data'] as Map<String, dynamic>;
+      state = state.copyWith(
+        isAuthenticated: true,
+        user: User.fromJson(userData),
+      );
+    } catch (_) {
+      await _apiClient.storage.delete(key: 'auth_token');
+      state = state.copyWith(isAuthenticated: false, user: null);
+    }
+  }
+
+  Future<bool> login(String email, String password, {String? deviceName}) async {
+    state = state.copyWith(isLoading: true, errorMessage: null);
+
+    try {
+      final response = await _apiClient.dio.post('/auth/login', data: {
+        'email': email,
+        'password': password,
+        'device_name': deviceName ?? 'Flutter Mobile App',
+      });
+
+      final data = response.data['data'] as Map<String, dynamic>;
+      final token = data['token'] as String;
+      final user = User.fromJson(data['user'] as Map<String, dynamic>);
+
+      await _apiClient.storage.write(key: 'auth_token', value: token);
+
+      state = state.copyWith(
+        isLoading: false,
+        isAuthenticated: true,
+        user: user,
+      );
+      return true;
+    } on DioException catch (e) {
+      final message = e.response?.data['message']?.toString() ?? 'Login failed. Please check credentials.';
+      state = state.copyWith(isLoading: false, errorMessage: message);
+      return false;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, errorMessage: e.toString());
+      return false;
+    }
+  }
+
+  Future<bool> register({
+    required String name,
+    required String email,
+    required String password,
+    String? phoneE164,
+  }) async {
+    state = state.copyWith(isLoading: true, errorMessage: null);
+
+    try {
+      final response = await _apiClient.dio.post('/auth/register', data: {
+        'name': name,
+        'email': email,
+        'password': password,
+        'phone_e164': phoneE164,
+        'device_name': 'Flutter Mobile App',
+      });
+
+      final data = response.data['data'] as Map<String, dynamic>;
+      final token = data['token'] as String;
+      final user = User.fromJson(data['user'] as Map<String, dynamic>);
+
+      await _apiClient.storage.write(key: 'auth_token', value: token);
+
+      state = state.copyWith(
+        isLoading: false,
+        isAuthenticated: true,
+        user: user,
+      );
+      return true;
+    } on DioException catch (e) {
+      final message = e.response?.data['message']?.toString() ?? 'Registration failed.';
+      state = state.copyWith(isLoading: false, errorMessage: message);
+      return false;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, errorMessage: e.toString());
+      return false;
+    }
+  }
+
+  Future<void> logout() async {
+    try {
+      await _apiClient.dio.post('/auth/logout');
+    } catch (_) {}
+
+    await _apiClient.storage.delete(key: 'auth_token');
+    state = const AuthState();
+  }
+}
+
+final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
+  final client = ApiClient();
+  return AuthNotifier(client);
+});

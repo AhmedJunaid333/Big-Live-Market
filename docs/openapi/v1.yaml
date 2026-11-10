@@ -1,0 +1,323 @@
+openapi: 3.1.0
+info:
+  title: Big Live Marketplace REST API
+  description: Official REST API specification for Big Live Marketplace platform (Web, Android, iOS).
+  version: 1.0.0
+servers:
+  - url: http://127.0.0.1:8000/api/v1
+    description: Local Development Server
+paths:
+  /health:
+    get:
+      summary: Health check endpoint
+      description: Returns service status, version, and server timestamp.
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: healthy
+                  service:
+                    type: string
+                    example: Big Live Marketplace API
+                  version:
+                    type: string
+                    example: 1.0.0
+                  timestamp:
+                    type: string
+                    format: date-time
+
+  /auth/register:
+    post:
+      summary: Register new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, email, password]
+              properties:
+                name:
+                  type: string
+                  example: Jane Doe
+                email:
+                  type: string
+                  format: email
+                  example: jane@example.com
+                password:
+                  type: string
+                  format: password
+                  example: secret12345
+                phone_e164:
+                  type: string
+                  example: "+923001234567"
+                locale:
+                  type: string
+                  enum: [en, ur]
+                  example: en
+                preferred_currency:
+                  type: string
+                  example: PKR
+                device_name:
+                  type: string
+                  example: "Samsung S24 Ultra"
+      responses:
+        '201':
+          description: User registered successfully
+        '422':
+          description: Validation error
+
+  /auth/login:
+    post:
+      summary: Authenticate user and issue Sanctum token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                phone_e164:
+                  type: string
+                password:
+                  type: string
+                device_name:
+                  type: string
+                  example: "Samsung S24 Ultra"
+      responses:
+        '200':
+          description: Logged in successfully
+        '401':
+          description: Invalid credentials
+
+  /auth/logout:
+    post:
+      summary: Revoke current access token
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Token revoked
+
+  /auth/logout-all:
+    post:
+      summary: Revoke all access tokens across all devices
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: All tokens revoked
+
+  /auth/otp/send:
+    post:
+      summary: Request an OTP challenge
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [destination, purpose]
+              properties:
+                destination:
+                  type: string
+                  example: "+923001234567"
+                purpose:
+                  type: string
+                  enum: [phone_verification, login, password_reset]
+      responses:
+        '200':
+          description: OTP challenge dispatched
+
+  /auth/otp/verify:
+    post:
+      summary: Verify an OTP challenge
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [destination, code, purpose]
+              properties:
+                destination:
+                  type: string
+                code:
+                  type: string
+                  example: "123456"
+                purpose:
+                  type: string
+                  enum: [phone_verification, login, password_reset]
+      responses:
+        '200':
+          description: Code verified successfully
+
+  /me:
+    get:
+      summary: Get authenticated profile
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: User profile details
+    patch:
+      summary: Update user profile
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Profile updated
+    delete:
+      summary: Soft delete account per data retention policy
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Account scheduled for deletion
+
+  /me/devices:
+    get:
+      summary: List registered devices
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: List of user devices
+
+  /me/devices/{id}:
+    delete:
+      summary: Revoke device access
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Device revoked
+
+  /me/consents:
+    post:
+      summary: Record user consent
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [document_type, version]
+              properties:
+                document_type:
+                  type: string
+                  enum: [terms_of_service, privacy_policy, age_declaration, marketing_optin]
+                version:
+                  type: string
+                  example: "1.0"
+      responses:
+        '201':
+          description: Consent recorded
+
+  /me/verification:
+    post:
+      summary: Submit identity verification request
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [type, evidence_private_path]
+              properties:
+                type:
+                  type: string
+                  enum: [cnic, passport, trade_license]
+                evidence_private_path:
+                  type: string
+                  example: "private/verifications/user_1_cnic.jpg"
+      responses:
+        '201':
+          description: Verification submitted
+
+  /listings:
+    get:
+      summary: List public active listings with cursor pagination
+      parameters:
+        - name: q
+          in: query
+          schema:
+            type: string
+        - name: category_id
+          in: query
+          schema:
+            type: integer
+        - name: city_id
+          in: query
+          schema:
+            type: integer
+        - name: cursor
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Collection of active listings
+    post:
+      summary: Create new listing draft
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title, description, category_id, city_id, condition_code]
+              properties:
+                title:
+                  type: string
+                  example: Vintage Leather Jacket
+                description:
+                  type: string
+                  example: Genuine leather vintage jacket in size L, barely worn.
+                category_id:
+                  type: integer
+                  example: 1
+                city_id:
+                  type: integer
+                  example: 1
+                price_minor:
+                  type: integer
+                  example: 450000
+                currency:
+                  type: string
+                  example: PKR
+                condition_code:
+                  type: string
+                  enum: [new, used, refurbished]
+      responses:
+        '201':
+          description: Listing draft created
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: Sanctum

@@ -1,0 +1,68 @@
+name: Big Live Marketplace CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  backend-tests:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: big_live_testing
+          MYSQL_ROOT_PASSWORD: password
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, xml, ctype, iconv, intl, pdo, pdo_sqlite, sqlite3, pdo_mysql, bcmath, curl
+          coverage: none
+
+      - name: Install Composer dependencies
+        run: |
+          cd backend
+          composer install --prefer-dist --no-progress
+
+      - name: Run Backend Tests
+        run: |
+          cd backend
+          php artisan test
+
+  mobile-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Install Flutter dependencies
+        run: |
+          cd mobile
+          flutter pub get
+
+      - name: Analyze Flutter Code
+        run: |
+          cd mobile
+          flutter analyze
+
+      - name: Run Flutter Tests
+        run: |
+          cd mobile
+          flutter test
