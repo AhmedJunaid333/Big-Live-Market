@@ -71,27 +71,27 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home, color: AppTheme.brandBlue),
+            selectedIcon: Icon(Icons.home, color: AppTheme.champagne),
             label: 'Home',
           ),
           NavigationDestination(
             icon: Icon(Icons.grid_view_outlined),
-            selectedIcon: Icon(Icons.grid_view_rounded, color: AppTheme.brandBlue),
+            selectedIcon: Icon(Icons.grid_view_rounded, color: AppTheme.champagne),
             label: 'Categories',
           ),
           NavigationDestination(
-            icon: Icon(Icons.add_circle_outline, color: AppTheme.accentAmber, size: 28),
-            selectedIcon: Icon(Icons.add_circle, color: AppTheme.accentAmber, size: 28),
+            icon: Icon(Icons.add_circle_outline, color: AppTheme.champagne, size: 28),
+            selectedIcon: Icon(Icons.add_circle, color: AppTheme.champagne, size: 28),
             label: 'Sell',
           ),
           NavigationDestination(
             icon: Icon(Icons.chat_bubble_outline),
-            selectedIcon: Icon(Icons.chat_bubble, color: AppTheme.brandBlue),
+            selectedIcon: Icon(Icons.chat_bubble, color: AppTheme.champagne),
             label: 'Chats',
           ),
           NavigationDestination(
             icon: Icon(Icons.person_outline),
-            selectedIcon: Icon(Icons.person, color: AppTheme.brandBlue),
+            selectedIcon: Icon(Icons.person, color: AppTheme.champagne),
             label: 'Profile',
           ),
         ],
@@ -109,10 +109,32 @@ class HomeFeedScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Big Live Marketplace'),
+        title: Row(
+          children: [
+            Container(
+              width: 28,
+              height: 28,
+              decoration: BoxDecoration(
+                color: AppTheme.champagne,
+                borderRadius: BorderRadius.circular(6),
+              ),
+              alignment: Alignment.center,
+              child: const Text(
+                'B',
+                style: TextStyle(
+                  color: AppTheme.obsidian,
+                  fontWeight: FontWeight.w900,
+                  fontSize: 16,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            const Text('Big Live Marketplace'),
+          ],
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.notifications_none_outlined),
+            icon: const Icon(Icons.notifications_none_outlined, color: AppTheme.champagne),
             onPressed: () {},
           ),
         ],
@@ -128,11 +150,11 @@ class HomeFeedScreen extends ConsumerWidget {
                   const SizedBox(height: AppTheme.space16),
                   const Text(
                     'No active listings found',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: AppTheme.textPrimary),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
                   ),
                   const SizedBox(height: AppTheme.space8),
                   const Text(
-                    'Be the first to post an item for sale!',
+                    'Be the first to post a luxury advert!',
                     style: TextStyle(color: AppTheme.textSecondary),
                   ),
                 ],
@@ -150,21 +172,33 @@ class HomeFeedScreen extends ConsumerWidget {
               final currency = item['currency']?.toString() ?? 'PKR';
               final formattedPrice = '$currency ${(priceMinor / 100).toStringAsFixed(0)}';
 
-              return Card(
+              return Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+                  border: Border.all(color: AppTheme.borderSubtle),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppTheme.obsidian.withValues(alpha: 0.04),
+                      blurRadius: 16,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
                 child: ListTile(
                   contentPadding: const EdgeInsets.all(AppTheme.space12),
                   leading: Container(
                     width: 56,
                     height: 56,
                     decoration: BoxDecoration(
-                      color: AppTheme.brandBlue.withValues(alpha: 0.08),
+                      color: AppTheme.obsidian,
                       borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
                     ),
-                    child: const Icon(Icons.image_outlined, color: AppTheme.brandBlue),
+                    child: const Icon(Icons.image_outlined, color: AppTheme.champagne),
                   ),
                   title: Text(
                     item['title']?.toString() ?? 'Untitled',
-                    style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+                    style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
                   ),
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -180,9 +214,9 @@ class HomeFeedScreen extends ConsumerWidget {
                       Text(
                         formattedPrice,
                         style: const TextStyle(
-                          color: AppTheme.brandBlue,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 15,
+                          color: AppTheme.champagneDark,
+                          fontWeight: FontWeight.w900,
+                          fontSize: 16,
                         ),
                       ),
                     ],
@@ -192,7 +226,7 @@ class HomeFeedScreen extends ConsumerWidget {
             },
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const Center(child: CircularProgressIndicator(color: AppTheme.champagne)),
         error: (error, _) => Center(
           child: Text('Error loading feed: $error'),
         ),
@@ -215,15 +249,15 @@ class PlaceholderScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 64, color: AppTheme.brandBlue.withValues(alpha: 0.5)),
+            Icon(icon, size: 64, color: AppTheme.champagne.withValues(alpha: 0.6)),
             const SizedBox(height: AppTheme.space16),
             Text(
               title,
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: AppTheme.space8),
             const Text(
-              'Phase implementation in progress',
+              'Feature active in Big Live Mobile Suite',
               style: TextStyle(color: AppTheme.textSecondary),
             ),
           ],
