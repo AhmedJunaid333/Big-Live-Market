@@ -11,8 +11,8 @@ class LoginScreen extends ConsumerStatefulWidget {
 }
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
+  final _emailController = TextEditingController(text: 'admin@biglive.pk');
+  final _passwordController = TextEditingController(text: 'Admin@12345');
   final _formKey = GlobalKey<FormState>();
 
   @override
@@ -38,6 +38,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
   }
 
+  void _fillCredentials(String email, String password) {
+    setState(() {
+      _emailController.text = email;
+      _passwordController.text = password;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
@@ -54,10 +61,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SizedBox(height: AppTheme.space16),
+                const SizedBox(height: AppTheme.space8),
                 const Center(
                   child: Text(
-                    'Welcome Back',
+                    'Welcome to Big Live',
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -68,11 +75,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 const SizedBox(height: AppTheme.space8),
                 const Center(
                   child: Text(
-                    'Enter your credentials to access your account',
-                    style: TextStyle(color: AppTheme.textSecondary, fontSize: 14),
+                    'Enter your credentials or choose a demo role below',
+                    style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
                   ),
                 ),
-                const SizedBox(height: AppTheme.space32),
+                const SizedBox(height: AppTheme.space24),
                 if (authState.errorMessage != null)
                   Container(
                     margin: const EdgeInsets.only(bottom: AppTheme.space16),
@@ -114,14 +121,49 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
                 const SizedBox(height: AppTheme.space24),
                 ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.champagne,
+                    foregroundColor: AppTheme.obsidian,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
                   onPressed: authState.isLoading ? null : _handleLogin,
                   child: authState.isLoading
                       ? const SizedBox(
                           height: 20,
                           width: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                          child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.obsidian),
                         )
-                      : const Text('Sign In', style: TextStyle(fontSize: 16)),
+                      : const Text('Sign In', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                ),
+
+                const SizedBox(height: AppTheme.space32),
+                const Divider(),
+                const SizedBox(height: AppTheme.space12),
+                const Text(
+                  'Quick 1-Tap Demo Credentials:',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppTheme.textPrimary),
+                ),
+                const SizedBox(height: AppTheme.space8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    ActionChip(
+                      avatar: const Icon(Icons.security, size: 16, color: AppTheme.obsidian),
+                      label: const Text('Admin'),
+                      onPressed: () => _fillCredentials('admin@biglive.pk', 'Admin@12345'),
+                    ),
+                    ActionChip(
+                      avatar: const Icon(Icons.storefront, size: 16, color: AppTheme.obsidian),
+                      label: const Text('Seller'),
+                      onPressed: () => _fillCredentials('seller@biglive.pk', 'Seller@12345'),
+                    ),
+                    ActionChip(
+                      avatar: const Icon(Icons.person, size: 16, color: AppTheme.obsidian),
+                      label: const Text('Buyer'),
+                      onPressed: () => _fillCredentials('buyer@biglive.pk', 'Buyer@12345'),
+                    ),
+                  ],
                 ),
               ],
             ),
