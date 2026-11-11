@@ -184,7 +184,12 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
               ),
             ),
             const SizedBox(width: 10),
-            const Text('Big Live Marketplace'),
+            const Expanded(
+              child: Text(
+                'Big Live Marketplace',
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
           ],
         ),
         actions: [
@@ -347,6 +352,8 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
                                       const SizedBox(height: 4),
                                       Text(
                                         location,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
                                         style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12),
                                       ),
                                       const SizedBox(height: 6),

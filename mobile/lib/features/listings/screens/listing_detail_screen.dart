@@ -142,7 +142,14 @@ class ListingDetailScreen extends StatelessWidget {
                     children: [
                       const Icon(Icons.location_on_outlined, size: 16, color: AppTheme.textSecondary),
                       const SizedBox(width: 4),
-                      Text(location, style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13)),
+                      Expanded(
+                        child: Text(
+                          location,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+                        ),
+                      ),
                     ],
                   ),
                 ],
@@ -183,9 +190,19 @@ class ListingDetailScreen extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(sellerName, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                          Text(
+                            sellerName,
+                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                           const SizedBox(height: 2),
-                          const Text('Member since 2026 · Response: 100%', style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+                          const Text(
+                            'Member since 2026 · Response: 100%',
+                            style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ],
                       ),
                     ),
@@ -244,9 +261,16 @@ class ListingDetailScreen extends StatelessWidget {
                   minimumSize: const Size(0, 48),
                   side: const BorderSide(color: AppTheme.champagne, width: 1.5),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
                 ),
-                icon: const Icon(Icons.phone, color: AppTheme.champagneDark),
-                label: const Text('Call Seller', style: TextStyle(color: AppTheme.obsidian, fontWeight: FontWeight.bold)),
+                icon: const Icon(Icons.phone, color: AppTheme.champagneDark, size: 20),
+                label: const FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    'Call Seller',
+                    style: TextStyle(color: AppTheme.obsidian, fontWeight: FontWeight.bold),
+                  ),
+                ),
                 onPressed: () {
                   showDialog(
                     context: context,
@@ -269,9 +293,16 @@ class ListingDetailScreen extends StatelessWidget {
                   foregroundColor: AppTheme.obsidian,
                   minimumSize: const Size(0, 48),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
                 ),
-                icon: const Icon(Icons.chat_bubble_outline),
-                label: const Text('Chat / Offer', style: TextStyle(fontWeight: FontWeight.w900)),
+                icon: const Icon(Icons.chat_bubble_outline, size: 20),
+                label: const FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    'Chat / Offer',
+                    style: TextStyle(fontWeight: FontWeight.w900),
+                  ),
+                ),
                 onPressed: () {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Opening encrypted negotiation channel...')),

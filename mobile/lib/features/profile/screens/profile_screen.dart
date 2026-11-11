@@ -23,7 +23,7 @@ class ProfileScreen extends ConsumerWidget {
 
   Widget _buildGuestProfile(BuildContext context) {
     return Center(
-      child: Padding(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.all(AppTheme.space24),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

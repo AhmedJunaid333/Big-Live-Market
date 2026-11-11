@@ -23,12 +23,12 @@ class CategoriesScreen extends ConsumerWidget {
         title: const Text('All Categories'),
       ),
       body: GridView.builder(
-        padding: const EdgeInsets.all(AppTheme.space16),
+        padding: const EdgeInsets.all(AppTheme.space12),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
-          crossAxisSpacing: 16,
-          mainAxisSpacing: 16,
-          childAspectRatio: 1.15,
+          crossAxisSpacing: 12,
+          mainAxisSpacing: 12,
+          childAspectRatio: 0.98,
         ),
         itemCount: _catalogCategories.length,
         itemBuilder: (context, index) {
@@ -41,7 +41,7 @@ class CategoriesScreen extends ConsumerWidget {
               );
             },
             child: Container(
-              padding: const EdgeInsets.all(AppTheme.space16),
+              padding: const EdgeInsets.all(AppTheme.space12),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
@@ -58,23 +58,27 @@ class CategoriesScreen extends ConsumerWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Container(
-                    width: 48,
-                    height: 48,
+                    width: 44,
+                    height: 44,
                     decoration: BoxDecoration(
                       color: AppTheme.obsidian,
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Icon(cat['icon'] as IconData, color: AppTheme.champagne, size: 26),
+                    child: Icon(cat['icon'] as IconData, color: AppTheme.champagne, size: 24),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 8),
                   Text(
                     cat['name'] as String,
                     textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: AppTheme.obsidian),
                   ),
-                  const SizedBox(height: 2),
+                  const SizedBox(height: 4),
                   Text(
                     cat['count'] as String,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary, fontWeight: FontWeight.w500),
                   ),
                 ],

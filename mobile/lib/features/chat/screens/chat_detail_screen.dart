@@ -96,8 +96,18 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(widget.userName, style: const TextStyle(fontSize: 16)),
-            Text(widget.itemTitle, style: const TextStyle(fontSize: 11, color: AppTheme.champagne)),
+            Text(
+              widget.userName,
+              style: const TextStyle(fontSize: 16),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            Text(
+              widget.itemTitle,
+              style: const TextStyle(fontSize: 11, color: AppTheme.champagne),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           ],
         ),
       ),
@@ -110,7 +120,14 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(widget.initialPrice, style: const TextStyle(color: AppTheme.champagne, fontWeight: FontWeight.bold)),
+                Expanded(
+                  child: Text(
+                    widget.initialPrice,
+                    style: const TextStyle(color: AppTheme.champagne, fontWeight: FontWeight.bold),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
                 TextButton.icon(
                   style: TextButton.styleFrom(foregroundColor: AppTheme.champagne),
                   icon: const Icon(Icons.local_offer_outlined, size: 16),
