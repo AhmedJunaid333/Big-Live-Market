@@ -30,6 +30,8 @@ class ChatDetailScreen extends StatefulWidget {
 
 class _ChatDetailScreenState extends State<ChatDetailScreen> {
   final _textController = TextEditingController();
+  bool _isPlayingVoice = false;
+  String? _activeOfferStatus; // 'accepted', 'countered', 'rejected'
   final List<Map<String, dynamic>> _messages = [
     {
       'isMe': false,
@@ -48,7 +50,91 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
       'text': 'Sent an offer: PKR 4,200,000',
       'time': '10:16 AM',
     },
+    {
+      'isMe': false,
+      'isVoiceNote': true,
+      'duration': '0:14',
+      'text': 'Voice Note (0:14)',
+      'time': '10:17 AM',
+    },
   ];
+
+  void _sendVoiceNote() {
+    setState(() {
+      _messages.add({
+        'isMe': true,
+        'isVoiceNote': true,
+        'duration': '0:08',
+        'text': 'Voice Note (0:08)',
+        'time': 'Just now',
+      });
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        backgroundColor: AppTheme.secondaryMint,
+        content: Text('Audio voice message recorded & delivered!'),
+      ),
+    );
+  }
+
+  void _makeCounterOffer() {
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        final counterController = TextEditingController(text: '4250000');
+        return AlertDialog(
+          backgroundColor: AppTheme.backgroundMid,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppTheme.radius2Xl),
+            side: const BorderSide(color: AppTheme.borderHairline),
+          ),
+          title: Text('Make Counter Offer', style: AppTheme.headlineMd),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Original Offer: PKR 4,200,000', style: AppTheme.bodySm.copyWith(color: AppTheme.onSurfaceMuted)),
+              const SizedBox(height: 12),
+              TextField(
+                controller: counterController,
+                keyboardType: TextInputType.number,
+                style: AppTheme.headlineMd.copyWith(color: AppTheme.secondaryMint),
+                decoration: InputDecoration(
+                  labelText: 'Your Counter Amount (PKR)',
+                  labelStyle: AppTheme.bodySm.copyWith(color: AppTheme.primaryLavender),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text('Cancel', style: TextStyle(color: AppTheme.onSurfaceMuted)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryLavender),
+              onPressed: () {
+                final amt = counterController.text.trim();
+                Navigator.pop(ctx);
+                setState(() {
+                  _activeOfferStatus = 'countered';
+                  _messages.add({
+                    'isMe': true,
+                    'isOffer': true,
+                    'offerAmount': 'PKR $amt',
+                    'text': 'Submitted Counter Offer: PKR $amt',
+                    'time': 'Just now',
+                  });
+                });
+              },
+              child: const Text('SUBMIT COUNTER', style: TextStyle(color: AppTheme.backgroundDark, fontWeight: FontWeight.bold)),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   void dispose() {
@@ -189,19 +275,104 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       NebulaBadgePill(
-                                        label: 'OFFER RECEIVED',
-                                        color: AppTheme.accentAmber,
+                                        label: _activeOfferStatus == 'accepted'
+                                            ? 'OFFER ACCEPTED'
+                                            : (_activeOfferStatus == 'countered'
+                                                ? 'COUNTERED'
+                                                : 'OFFER RECEIVED'),
+                                        color: _activeOfferStatus == 'accepted'
+                                            ? AppTheme.secondaryMint
+                                            : AppTheme.accentAmber,
                                       ),
                                     ],
                                   ),
                                   const SizedBox(height: 6),
                                 ],
-                                Text(
-                                  msg['text'] as String,
-                                  style: AppTheme.bodyMd.copyWith(
-                                    color: AppTheme.onSurface,
+                                if (msg['isVoiceNote'] == true) ...[
+                                  Row(
+                                    children: [
+                                      GestureDetector(
+                                        onTap: () => setState(() => _isPlayingVoice = !_isPlayingVoice),
+                                        child: Container(
+                                          padding: const EdgeInsets.all(8),
+                                          decoration: BoxDecoration(
+                                            color: AppTheme.primaryLavender.withValues(alpha: 0.2),
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: Icon(
+                                            _isPlayingVoice ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                                            color: AppTheme.primaryLavender,
+                                            size: 20,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            LinearProgressIndicator(
+                                              value: _isPlayingVoice ? 0.65 : 0.0,
+                                              backgroundColor: AppTheme.borderHairline,
+                                              valueColor: const AlwaysStoppedAnimation(AppTheme.primaryLavender),
+                                              minHeight: 3,
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              'Voice Note (${msg['duration'] ?? '0:12'})',
+                                              style: AppTheme.caption.copyWith(color: AppTheme.onSurfaceVariant),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ),
+                                ] else ...[
+                                  Text(
+                                    msg['text'] as String,
+                                    style: AppTheme.bodyMd.copyWith(
+                                      color: AppTheme.onSurface,
+                                    ),
+                                  ),
+                                ],
+                                if (isOffer && !isMe && _activeOfferStatus == null) ...[
+                                  const SizedBox(height: 10),
+                                  const Divider(color: AppTheme.borderHairline, height: 1),
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: OutlinedButton(
+                                          style: OutlinedButton.styleFrom(
+                                            side: const BorderSide(color: AppTheme.secondaryMint),
+                                            padding: const EdgeInsets.symmetric(vertical: 6),
+                                          ),
+                                          onPressed: () {
+                                            setState(() => _activeOfferStatus = 'accepted');
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              const SnackBar(
+                                                backgroundColor: AppTheme.secondaryMint,
+                                                content: Text('Offer accepted! Both parties notified.'),
+                                              ),
+                                            );
+                                          },
+                                          child: const Text('ACCEPT', style: TextStyle(color: AppTheme.secondaryMint, fontSize: 11, fontWeight: FontWeight.bold)),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Expanded(
+                                        child: ElevatedButton(
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: AppTheme.primaryLavender,
+                                            padding: const EdgeInsets.symmetric(vertical: 6),
+                                          ),
+                                          onPressed: _makeCounterOffer,
+                                          child: const Text('COUNTER', style: TextStyle(color: AppTheme.backgroundDark, fontSize: 11, fontWeight: FontWeight.bold)),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
                                 const SizedBox(height: 4),
                                 Align(
                                   alignment: Alignment.bottomRight,
@@ -236,6 +407,25 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                     ),
                     child: Row(
                       children: [
+                        GestureDetector(
+                          onTap: _sendVoiceNote,
+                          child: Container(
+                            width: 42,
+                            height: 42,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: AppTheme.secondaryMint.withValues(alpha: 0.15),
+                              border: Border.all(color: AppTheme.secondaryMint.withValues(alpha: 0.4)),
+                            ),
+                            alignment: Alignment.center,
+                            child: const Icon(
+                              Icons.mic_rounded,
+                              size: 22,
+                              color: AppTheme.secondaryMint,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
                         Expanded(
                           child: Container(
                             decoration: BoxDecoration(

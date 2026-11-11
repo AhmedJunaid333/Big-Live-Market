@@ -8,6 +8,7 @@ import '../../../core/widgets/nebula_glass_widgets.dart';
 import '../../../main.dart';
 import '../../chat/screens/chat_detail_screen.dart';
 import '../providers/favorites_provider.dart';
+import '../widgets/nextgen_marketplace_widgets.dart';
 
 class ListingDetailScreen extends ConsumerStatefulWidget {
   final Map<String, dynamic>? listing;
@@ -361,6 +362,25 @@ class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
 
                         const SizedBox(height: AppTheme.sectionGap),
 
+                        // Next-Gen Feature 1: AI Price Intelligence & Deal Estimation
+                        NextGenMarketplaceWidgets.buildAiValuationCard(
+                          priceMinor: priceMinor,
+                          condition: condition,
+                          title: title,
+                        ),
+
+                        const SizedBox(height: AppTheme.sectionGap),
+
+                        // Next-Gen Feature 2: Official Device / Vehicle Verification
+                        NextGenMarketplaceWidgets.buildVerificationBadges(title: title),
+
+                        const SizedBox(height: AppTheme.sectionGap),
+
+                        // Next-Gen Feature 3: 30s Live Inspection Video
+                        NextGenMarketplaceWidgets.buildLiveVideoPreview(context, title: title),
+
+                        const SizedBox(height: AppTheme.sectionGap),
+
                         // Overview & Highlights Glass Card
                         NebulaGlassCard(
                           child: Column(
@@ -426,16 +446,31 @@ class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
                             child: NebulaButtonSecondary(
                               label: 'Call',
                               icon: Icons.phone_rounded,
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 14),
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 14),
                               onPressed: () => _callSeller(sellerPhone),
                             ),
                           ),
-                          const SizedBox(width: 10),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            flex: 2,
+                            child: NebulaButtonSecondary(
+                              label: 'Safe Pay',
+                              icon: Icons.shield_rounded,
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 14),
+                              onPressed: () => NextGenMarketplaceWidgets.showEscrowSheet(
+                                context,
+                                title: title,
+                                formattedPrice: formattedPrice,
+                                priceMinor: priceMinor,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
                           Expanded(
                             flex: 3,
                             child: NebulaButtonPrimary(
                               label: 'Direct Chat',
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 14),
                               icon: Icons.chat_bubble_rounded,
                               onPressed: () {
                                 Navigator.push(
@@ -445,6 +480,7 @@ class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
                                       conversationId: id,
                                       sellerName: sellerName,
                                       listingTitle: title,
+                                      initialPrice: formattedPrice,
                                     ),
                                   ),
                                 );

@@ -10,6 +10,7 @@ import 'features/listings/providers/favorites_provider.dart';
 import 'features/listings/providers/filter_provider.dart';
 import 'features/listings/screens/favorites_screen.dart';
 import 'features/listings/screens/listing_detail_screen.dart';
+import 'features/listings/screens/nearby_radar_screen.dart';
 import 'features/listings/screens/post_ad_screen.dart';
 import 'features/listings/widgets/filter_bottom_sheet.dart';
 import 'features/profile/screens/profile_screen.dart';
@@ -318,7 +319,20 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
                       ],
                     ),
                     Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
+                        NebulaGlassIconButton(
+                          icon: Icons.radar_rounded,
+                          color: AppTheme.secondaryMint,
+                          tooltip: 'Nearby Radar Deals',
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const NearbyRadarScreen()),
+                            );
+                          },
+                        ),
+                        const SizedBox(width: 6),
                         NebulaGlassIconButton(
                           icon: Icons.filter_list_rounded,
                           color: ref.watch(filterProvider).isActive ? AppTheme.accentCyan : AppTheme.onSurfaceVariant,
@@ -327,7 +341,7 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
                             FilterBottomSheet.show(context);
                           },
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 6),
                         NebulaGlassIconButton(
                           icon: Icons.favorite_border_rounded,
                           color: AppTheme.accentPink,
@@ -337,15 +351,6 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
                               context,
                               MaterialPageRoute(builder: (_) => const FavoritesScreen()),
                             );
-                          },
-                        ),
-                        const SizedBox(width: 8),
-                        NebulaGlassIconButton(
-                          icon: Icons.refresh_rounded,
-                          color: AppTheme.primaryLavender,
-                          tooltip: 'Refresh',
-                          onPressed: () {
-                            ref.invalidate(listingsFeedProvider);
                           },
                         ),
                       ],
