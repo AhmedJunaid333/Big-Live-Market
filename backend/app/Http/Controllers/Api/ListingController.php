@@ -26,7 +26,10 @@ class ListingController extends Controller
         }
 
         if ($request->filled('category_id')) {
-            $query->where('category_id', (int) $request->input('category_id'));
+            $catId = (int) $request->input('category_id');
+            $childIds = \App\Models\Category::where('parent_id', $catId)->pluck('id')->all();
+            $categoryIds = array_merge([$catId], $childIds);
+            $query->whereIn('category_id', $categoryIds);
         }
 
         if ($request->filled('city_id')) {

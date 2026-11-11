@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:big_live_mobile/core/theme/app_theme.dart';
 import 'package:big_live_mobile/core/widgets/nebula_glass_widgets.dart';
 import 'package:big_live_mobile/features/categories/screens/categories_screen.dart';
+import 'package:big_live_mobile/features/categories/screens/category_listings_screen.dart';
 import 'package:big_live_mobile/features/profile/screens/profile_screen.dart';
 import 'package:big_live_mobile/features/listings/screens/listing_detail_screen.dart';
 import 'package:big_live_mobile/features/listings/screens/post_ad_screen.dart';
@@ -80,12 +81,16 @@ void main() {
 
     testWidgets('CategoriesScreen renders glass cards and departments', (tester) async {
       await tester.pumpWidget(
-        const ProviderScope(
-          child: MaterialApp(
+        ProviderScope(
+          overrides: [
+            dynamicCategoriesProvider.overrideWith((ref) async => CategoriesScreen.defaultCategories),
+          ],
+          child: const MaterialApp(
             home: CategoriesScreen(),
           ),
         ),
       );
+      await tester.pumpAndSettle();
 
       expect(find.text('Categories'), findsOneWidget);
       expect(find.text('Motors & Cars'), findsOneWidget);
@@ -158,6 +163,39 @@ void main() {
       expect(find.text('SIGN IN'), findsOneWidget);
       expect(find.text('Admin'), findsOneWidget);
       expect(find.text('Seller'), findsOneWidget);
+    });
+
+    testWidgets('CategoryListingsScreen renders department header and items', (tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            categoryListingsProvider(1).overrideWith((ref) async => [
+              {
+                'id': 1,
+                'title': 'Honda Civic RS Turbo',
+                'price_minor': 850000000,
+                'currency': 'PKR',
+                'condition_code': 'used',
+                'location_label': 'Lahore, Pakistan',
+              }
+            ]),
+          ],
+          child: const MaterialApp(
+            home: CategoryListingsScreen(
+              categoryId: 1,
+              categoryName: 'Motors & Cars',
+              icon: Icons.directions_car_rounded,
+              accentColor: AppTheme.accentPink,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Motors & Cars'), findsOneWidget);
+      expect(find.text('DEPARTMENT'), findsOneWidget);
+      expect(find.text('Honda Civic RS Turbo'), findsOneWidget);
+      expect(find.byType(NebulaGlassCard), findsWidgets);
     });
   });
 }

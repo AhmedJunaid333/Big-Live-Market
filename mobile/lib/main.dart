@@ -16,21 +16,42 @@ final searchQueryProvider = StateProvider<String>((ref) => '');
 
 final activeCategoryFilterProvider = StateProvider<String>((ref) => 'All');
 
+const Map<String, int?> categoryIdMap = {
+  'All': null,
+  'Motors': 1,
+  'Mobiles': 3,
+  'Property': 5,
+  'Tech': 6,
+};
+
 final listingsFeedProvider = FutureProvider<List<dynamic>>((ref) async {
   final client = ref.watch(apiClientProvider);
   final query = ref.watch(searchQueryProvider);
+  final activeCategory = ref.watch(activeCategoryFilterProvider);
+  final categoryId = categoryIdMap[activeCategory];
 
   try {
-    final response = await client.dio.get(
-      query.isEmpty ? '/listings' : '/search?q=$query',
-    );
+    String endpoint;
+    if (query.isNotEmpty) {
+      endpoint = '/search?q=$query';
+      if (categoryId != null) {
+        endpoint += '&category_id=$categoryId';
+      }
+    } else if (categoryId != null) {
+      endpoint = '/listings?category_id=$categoryId';
+    } else {
+      endpoint = '/listings';
+    }
+
+    final response = await client.dio.get(endpoint);
     final data = response.data['data'] as List<dynamic>?;
     return data ?? [];
   } catch (e) {
-    // Return sample offline listings if server temporarily unreachable
-    return [
+    // Return sample offline listings filtered by category if applicable
+    final allOffline = [
       {
         'id': 1,
+        'category_id': 1,
         'title': 'Honda Civic RS Turbo 2022 Low Mileage',
         'description': 'First owner, bumper to bumper genuine, maintained through authorized dealership.',
         'price_minor': 850000000,
@@ -41,6 +62,7 @@ final listingsFeedProvider = FutureProvider<List<dynamic>>((ref) async {
       },
       {
         'id': 2,
+        'category_id': 3,
         'title': 'Apple iPhone 15 Pro Max 256GB Natural Titanium',
         'description': 'PTA approved, battery health 99%, complete original box and cable included.',
         'price_minor': 43000000,
@@ -51,6 +73,7 @@ final listingsFeedProvider = FutureProvider<List<dynamic>>((ref) async {
       },
       {
         'id': 3,
+        'category_id': 5,
         'title': '1 Kanal Luxury Designer House for Sale',
         'description': 'Spanish architecture, 5 master bedrooms, imported Italian fittings, lush lawn.',
         'price_minor': 9500000000,
@@ -60,6 +83,11 @@ final listingsFeedProvider = FutureProvider<List<dynamic>>((ref) async {
         'seller': {'name': 'Prime Estates', 'phone_e164': '+923219876543'}
       },
     ];
+
+    if (categoryId != null) {
+      return allOffline.where((item) => item['category_id'] == categoryId).toList();
+    }
+    return allOffline;
   }
 });
 
