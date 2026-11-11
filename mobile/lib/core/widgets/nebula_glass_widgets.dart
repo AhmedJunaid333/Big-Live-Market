@@ -310,7 +310,7 @@ class NebulaGlassIconButton extends StatelessWidget {
   }
 }
 
-/// Tinted Icon Bubble: size-8 to size-10 rounded-full pill with bg-<accent>/20 text-<accent>
+/// Tinted Icon Bubble: size-8 to size-10 rounded-full pill with `bg-[accent]/20 text-[accent]`
 class TintedIconBubble extends StatelessWidget {
   final IconData icon;
   final Color accentColor;
