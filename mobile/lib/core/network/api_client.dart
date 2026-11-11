@@ -7,6 +7,8 @@ class ApiClient {
     defaultValue: 'http://127.0.0.1:8000/api/v1',
   );
 
+  static const String fallbackBaseUrl = 'http://10.92.3.111:8000/api/v1';
+
   final Dio _dio;
   final FlutterSecureStorage _storage;
 
@@ -30,7 +32,24 @@ class ApiClient {
           }
           return handler.next(options);
         },
-        onError: (DioException error, handler) {
+        onError: (DioException error, handler) async {
+          // If connection fails on 127.0.0.1, auto-retry with Wi-Fi LAN IP
+          if ((error.type == DioExceptionType.connectionTimeout ||
+                  error.type == DioExceptionType.connectionError) &&
+              error.requestOptions.extra['retried_alternate'] != true) {
+            final options = error.requestOptions;
+            options.extra['retried_alternate'] = true;
+            
+            final isLocalhost = options.baseUrl.contains('127.0.0.1') || options.baseUrl.contains('localhost');
+            options.baseUrl = isLocalhost ? fallbackBaseUrl : defaultBaseUrl;
+
+            try {
+              final response = await _dio.fetch(options);
+              return handler.resolve(response);
+            } catch (e) {
+              // Alternate failed too, return original error
+            }
+          }
           return handler.next(error);
         },
       ),

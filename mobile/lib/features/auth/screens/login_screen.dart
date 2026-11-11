@@ -15,6 +15,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _emailController = TextEditingController(text: 'admin@biglive.pk');
   final _passwordController = TextEditingController(text: 'Admin@12345');
   final _formKey = GlobalKey<FormState>();
+  bool _obscurePassword = true;
 
   @override
   void dispose() {
@@ -45,11 +46,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
   }
 
-  void _fillCredentials(String email, String password) {
+  void _fillCredentials(String email, String password, String role) {
     setState(() {
       _emailController.text = email;
       _passwordController.text = password;
     });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        duration: const Duration(seconds: 1),
+        backgroundColor: AppTheme.backgroundMid,
+        content: Text(
+          '$role credentials filled ($email)',
+          style: AppTheme.bodySm.copyWith(color: AppTheme.primaryLavender),
+        ),
+      ),
+    );
   }
 
   @override
@@ -182,7 +193,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         child: TextFormField(
                           controller: _passwordController,
-                          obscureText: true,
+                          obscureText: _obscurePassword,
                           style: AppTheme.bodyMd.copyWith(color: AppTheme.onSurface),
                           validator: (v) => (v == null || v.isEmpty) ? 'Please enter password' : null,
                           decoration: InputDecoration(
@@ -192,6 +203,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               Icons.key_rounded,
                               size: 18,
                               color: AppTheme.primaryLavender,
+                            ),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _obscurePassword ? Icons.visibility_off_rounded : Icons.visibility_rounded,
+                                size: 18,
+                                color: AppTheme.onSurfaceMuted,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _obscurePassword = !_obscurePassword;
+                                });
+                              },
                             ),
                             border: InputBorder.none,
                           ),
@@ -224,7 +247,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             child: _buildRoleChip(
                               label: 'Admin',
                               color: AppTheme.accentPink,
-                              onTap: () => _fillCredentials('admin@biglive.pk', 'Admin@12345'),
+                              onTap: () => _fillCredentials('admin@biglive.pk', 'Admin@12345', 'Admin'),
                             ),
                           ),
                           const SizedBox(width: 8),
@@ -232,7 +255,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             child: _buildRoleChip(
                               label: 'Seller',
                               color: AppTheme.secondaryMint,
-                              onTap: () => _fillCredentials('seller@biglive.pk', 'Seller@12345'),
+                              onTap: () => _fillCredentials('seller@biglive.pk', 'Seller@12345', 'Seller'),
                             ),
                           ),
                           const SizedBox(width: 8),
@@ -240,7 +263,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             child: _buildRoleChip(
                               label: 'Buyer',
                               color: AppTheme.accentBlue,
-                              onTap: () => _fillCredentials('buyer@biglive.pk', 'Buyer@12345'),
+                              onTap: () => _fillCredentials('buyer@biglive.pk', 'Buyer@12345', 'Buyer'),
                             ),
                           ),
                         ],

@@ -81,7 +81,14 @@ class AuthNotifier extends StateNotifier<AuthState> {
       );
       return true;
     } on DioException catch (e) {
-      final message = e.response?.data['message']?.toString() ?? 'Login failed. Please check credentials.';
+      String message;
+      if (e.response != null && e.response?.data is Map) {
+        message = e.response?.data['message']?.toString() ?? 'Invalid email or password.';
+      } else if (e.type == DioExceptionType.connectionError || e.type == DioExceptionType.connectionTimeout) {
+        message = 'Cannot reach backend server. Check Wi-Fi or USB ADB reverse.';
+      } else {
+        message = e.message ?? 'Login failed. Please check credentials.';
+      }
       state = state.copyWith(isLoading: false, errorMessage: message);
       return false;
     } catch (e) {
