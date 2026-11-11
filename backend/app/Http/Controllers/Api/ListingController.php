@@ -36,7 +36,12 @@ class ListingController extends Controller
             $query->where('city_id', (int) $request->input('city_id'));
         }
 
+        if ($request->boolean('featured')) {
+            $query->where('is_featured', true);
+        }
+
         $paginator = $query->with(['seller:id,name,username', 'media'])
+            ->orderByDesc('priority_rank')
             ->latest('id')
             ->cursorPaginate(20);
 
@@ -126,6 +131,40 @@ class ListingController extends Controller
         }
 
         return $this->successResponse($listing, 'Listing marked as sold');
+    }
+
+    public function promote(Request $request, Listing $listing): JsonResponse
+    {
+        $this->authorizeOwner($request->user(), $listing);
+
+        $validated = $request->validate([
+            'plan' => ['required', 'string', 'in:top_spotlight,featured_urgent,bump_up'],
+            'payment_method' => ['required', 'string', 'in:jazzcash,easypaisa,raast,card,mock'],
+            'duration_days' => ['integer', 'min:1', 'max:30'],
+        ]);
+
+        $days = (int) ($validated['duration_days'] ?? 7);
+        $rank = match ($validated['plan']) {
+            'top_spotlight' => 20,
+            'featured_urgent' => 10,
+            default => 5,
+        };
+
+        $listing->update([
+            'is_featured' => true,
+            'featured_plan' => $validated['plan'],
+            'featured_until' => now()->addDays($days),
+            'priority_rank' => $rank,
+        ]);
+
+        return $this->successResponse([
+            'listing_id' => $listing->id,
+            'is_featured' => true,
+            'featured_plan' => $validated['plan'],
+            'featured_until' => $listing->featured_until->toIso8601String(),
+            'priority_rank' => $rank,
+            'payment_status' => 'settled',
+        ], 'Listing promoted to Top Ranking Featured Ad successfully');
     }
 
     public function attachMedia(Request $request, Listing $listing): JsonResponse

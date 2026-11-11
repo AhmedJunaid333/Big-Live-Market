@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
+import '../../../core/services/image_optimization_service.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/nebula_glass_widgets.dart';
 import '../../../main.dart';
@@ -92,8 +93,15 @@ class _PostAdScreenState extends ConsumerState<PostAdScreen> {
       if (listingId != null && _selectedImages.isNotEmpty) {
         for (final img in _selectedImages) {
           try {
+            // Automatically optimize & compress image before network transmission
+            final optimizedFile = await ImageOptimizationService.optimizeImage(
+              file: File(img.path),
+            );
             final formData = FormData.fromMap({
-              'image': await MultipartFile.fromFile(img.path, filename: img.name),
+              'image': await MultipartFile.fromFile(
+                optimizedFile.path,
+                filename: 'optimized_${img.name}',
+              ),
             });
             await client.dio.post('/listings/$listingId/media', data: formData);
           } catch (_) {}

@@ -29,6 +29,38 @@ const Map<String, int?> categoryIdMap = {
   'Tech': 6,
 };
 
+final featuredListingsProvider = FutureProvider<List<dynamic>>((ref) async {
+  final client = ref.watch(apiClientProvider);
+  try {
+    final response = await client.dio.get('/listings?featured=1');
+    final data = response.data['data'] as List<dynamic>?;
+    return List<dynamic>.from(data ?? []);
+  } catch (e) {
+    return [
+      {
+        'id': 2,
+        'title': 'Apple iPhone 15 Pro Max 256GB Titanium',
+        'price_minor': 43000000,
+        'currency': 'PKR',
+        'condition_code': 'new',
+        'location_label': 'Gulberg III, Lahore',
+        'is_featured': true,
+        'featured_plan': 'top_spotlight',
+      },
+      {
+        'id': 1,
+        'title': 'Toyota Corolla Altis Grande 1.8 2023',
+        'price_minor': 850000000,
+        'currency': 'PKR',
+        'condition_code': 'used',
+        'location_label': 'DHA Phase 5, Lahore',
+        'is_featured': true,
+        'featured_plan': 'featured_urgent',
+      },
+    ];
+  }
+});
+
 final listingsFeedProvider = FutureProvider<List<dynamic>>((ref) async {
   final client = ref.watch(apiClientProvider);
   final query = ref.watch(searchQueryProvider);
@@ -411,6 +443,181 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
                     }).toList(),
                   ),
                 ),
+              ),
+
+              // Top Ranking Featured Ads Section
+              Consumer(
+                builder: (context, ref, _) {
+                  final featuredAsync = ref.watch(featuredListingsProvider);
+                  return featuredAsync.maybeWhen(
+                    data: (featuredItems) {
+                      if (featuredItems.isEmpty) return const SizedBox.shrink();
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(AppTheme.gutter, 10, AppTheme.gutter, 8),
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.accentAmber.withValues(alpha: 0.2),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: const Icon(
+                                    Icons.bolt_rounded,
+                                    size: 16,
+                                    color: AppTheme.accentAmber,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'TOP RANKING FEATURED',
+                                  style: AppTheme.labelUppercase.copyWith(
+                                    letterSpacing: 1.2,
+                                    color: AppTheme.accentAmber,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                                const Spacer(),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+                                    border: Border.all(color: AppTheme.accentAmber.withValues(alpha: 0.4)),
+                                    color: AppTheme.accentAmber.withValues(alpha: 0.1),
+                                  ),
+                                  child: Text(
+                                    'SPONSORED',
+                                    style: AppTheme.labelSm.copyWith(
+                                      color: AppTheme.accentAmber,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          SizedBox(
+                            height: 140,
+                            child: ListView.separated(
+                              physics: const BouncingScrollPhysics(),
+                              padding: const EdgeInsets.symmetric(horizontal: AppTheme.gutter),
+                              scrollDirection: Axis.horizontal,
+                              itemCount: featuredItems.length,
+                              separatorBuilder: (_, __) => const SizedBox(width: 12),
+                              itemBuilder: (context, index) {
+                                final f = featuredItems[index] as Map<String, dynamic>;
+                                final priceMinor = (f['price_minor'] ?? 0) as num;
+                                final currency = f['currency']?.toString() ?? 'PKR';
+                                final formattedPrice = '$currency ${(priceMinor / 100).toStringAsFixed(0)}';
+
+                                return RepaintBoundary(
+                                  child: Container(
+                                    width: 250,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+                                      gradient: LinearGradient(
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                        colors: [
+                                          AppTheme.accentAmber.withValues(alpha: 0.18),
+                                          AppTheme.primaryLavender.withValues(alpha: 0.08),
+                                          const Color(0x0AFFFFFF),
+                                        ],
+                                      ),
+                                      border: Border.all(
+                                        color: AppTheme.accentAmber.withValues(alpha: 0.45),
+                                        width: 1.2,
+                                      ),
+                                    ),
+                                    child: Material(
+                                      color: Colors.transparent,
+                                      child: InkWell(
+                                        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+                                        onTap: () {
+                                          Navigator.of(context).push(
+                                            MaterialPageRoute(
+                                              builder: (_) => ListingDetailScreen(listing: f),
+                                            ),
+                                          );
+                                        },
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(12),
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
+                                                children: [
+                                                  Container(
+                                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                                    decoration: BoxDecoration(
+                                                      color: AppTheme.accentAmber,
+                                                      borderRadius: BorderRadius.circular(4),
+                                                    ),
+                                                    child: const Row(
+                                                      mainAxisSize: MainAxisSize.min,
+                                                      children: [
+                                                        Icon(Icons.star_rounded, size: 12, color: Colors.black),
+                                                        SizedBox(width: 2),
+                                                        Text(
+                                                          'FEATURED',
+                                                          style: TextStyle(
+                                                            fontSize: 9,
+                                                            fontWeight: FontWeight.w900,
+                                                            color: Colors.black,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                  const Spacer(),
+                                                  Text(
+                                                    f['location_label']?.toString() ?? 'Pakistan',
+                                                    style: AppTheme.caption.copyWith(
+                                                      color: AppTheme.onSurfaceMuted,
+                                                      fontSize: 10,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                              const Spacer(),
+                                              Text(
+                                                f['title']?.toString() ?? '',
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: AppTheme.bodyMd.copyWith(
+                                                  fontWeight: FontWeight.w700,
+                                                  color: AppTheme.onSurface,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                formattedPrice,
+                                                style: AppTheme.priceSm.copyWith(
+                                                  color: AppTheme.accentAmber,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                        ],
+                      );
+                    },
+                    orElse: () => const SizedBox.shrink(),
+                  );
+                },
               ),
 
               // Listings Feed

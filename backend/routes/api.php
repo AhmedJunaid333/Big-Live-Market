@@ -146,6 +146,7 @@ Route::prefix('v1')->group(function () {
         Route::post('/listings/{listing}/pause', [ListingController::class, 'pause']);
         Route::post('/listings/{listing}/resume', [ListingController::class, 'resume']);
         Route::post('/listings/{listing}/mark-sold', [ListingController::class, 'markSold']);
+        Route::post('/listings/{listing}/promote', [ListingController::class, 'promote']);
         Route::post('/listings/{listing}/media', [ListingController::class, 'attachMedia']);
         Route::post('/listings/{listing}/attributes', [ListingController::class, 'saveAttributes']);
     });
