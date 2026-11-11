@@ -97,9 +97,9 @@ class CategoriesScreen extends ConsumerWidget {
                   ),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
-                    childAspectRatio: 0.95,
+                    crossAxisSpacing: 14,
+                    mainAxisSpacing: 14,
+                    childAspectRatio: 0.84,
                   ),
                   itemCount: _catalogCategories.length,
                   itemBuilder: (context, index) {
@@ -108,7 +108,7 @@ class CategoriesScreen extends ConsumerWidget {
 
                     return NebulaGlassCard(
                       borderRadius: AppTheme.radius2Xl,
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                       onTap: () {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
@@ -126,21 +126,25 @@ class CategoriesScreen extends ConsumerWidget {
                           TintedIconBubble(
                             icon: cat['icon'] as IconData,
                             accentColor: color,
-                            size: 52,
-                            iconSize: 26,
+                            size: 46,
+                            iconSize: 24,
                           ),
-                          const SizedBox(height: 12),
-                          Text(
-                            cat['name'] as String,
-                            textAlign: TextAlign.center,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: AppTheme.bodyMd.copyWith(
-                              fontWeight: FontWeight.w700,
-                              color: AppTheme.onSurface,
+                          const SizedBox(height: 10),
+                          Flexible(
+                            child: Text(
+                              cat['name'] as String,
+                              textAlign: TextAlign.center,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: AppTheme.bodyMd.copyWith(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 13,
+                                height: 1.25,
+                                color: AppTheme.onSurface,
+                              ),
                             ),
                           ),
-                          const SizedBox(height: 6),
+                          const SizedBox(height: 4),
                           Text(
                             cat['count'] as String,
                             maxLines: 1,
