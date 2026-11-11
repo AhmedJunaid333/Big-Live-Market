@@ -1,91 +1,163 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/widgets/nebula_glass_widgets.dart';
 
 class CategoriesScreen extends ConsumerWidget {
   const CategoriesScreen({super.key});
 
   static const List<Map<String, dynamic>> _catalogCategories = [
-    {'name': 'Motors & Cars', 'icon': Icons.directions_car_filled_rounded, 'count': '1,420+ Ads'},
-    {'name': 'Mobile Phones', 'icon': Icons.smartphone_rounded, 'count': '3,890+ Ads'},
-    {'name': 'Luxury Property', 'icon': Icons.apartment_rounded, 'count': '940+ Ads'},
-    {'name': 'Electronics & Tech', 'icon': Icons.devices_other_rounded, 'count': '2,150+ Ads'},
-    {'name': 'Bikes & Motorcycles', 'icon': Icons.two_wheeler_rounded, 'count': '870+ Ads'},
-    {'name': 'Watches & Jewelry', 'icon': Icons.watch_outlined, 'count': '430+ Ads'},
-    {'name': 'Home & Furniture', 'icon': Icons.chair_outlined, 'count': '1,120+ Ads'},
-    {'name': 'Jobs & Services', 'icon': Icons.business_center_outlined, 'count': '680+ Ads'},
+    {
+      'name': 'Motors & Cars',
+      'icon': Icons.directions_car_filled_rounded,
+      'count': '1,420+ Ads',
+      'color': AppTheme.accentPink,
+    },
+    {
+      'name': 'Mobile Phones',
+      'icon': Icons.smartphone_rounded,
+      'count': '3,890+ Ads',
+      'color': AppTheme.accentMint,
+    },
+    {
+      'name': 'Luxury Property',
+      'icon': Icons.apartment_rounded,
+      'count': '940+ Ads',
+      'color': AppTheme.accentBlue,
+    },
+    {
+      'name': 'Electronics & Tech',
+      'icon': Icons.devices_other_rounded,
+      'count': '2,150+ Ads',
+      'color': AppTheme.accentIndigo,
+    },
+    {
+      'name': 'Bikes & Cycles',
+      'icon': Icons.two_wheeler_rounded,
+      'count': '870+ Ads',
+      'color': AppTheme.accentRose,
+    },
+    {
+      'name': 'Watches & Jewels',
+      'icon': Icons.watch_rounded,
+      'count': '430+ Ads',
+      'color': AppTheme.accentAmber,
+    },
+    {
+      'name': 'Home & Furniture',
+      'icon': Icons.chair_rounded,
+      'count': '1,120+ Ads',
+      'color': AppTheme.primaryLavender,
+    },
+    {
+      'name': 'Jobs & Services',
+      'icon': Icons.business_center_rounded,
+      'count': '680+ Ads',
+      'color': AppTheme.secondaryMint,
+    },
   ];
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('All Categories'),
-      ),
-      body: GridView.builder(
-        padding: const EdgeInsets.all(AppTheme.space12),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 12,
-          childAspectRatio: 0.98,
-        ),
-        itemCount: _catalogCategories.length,
-        itemBuilder: (context, index) {
-          final cat = _catalogCategories[index];
-          return InkWell(
-            borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Browsing ${cat['name']} catalog...')),
-              );
-            },
-            child: Container(
-              padding: const EdgeInsets.all(AppTheme.space12),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-                border: Border.all(color: AppTheme.borderSubtle),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppTheme.obsidian.withValues(alpha: 0.04),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: AppTheme.obsidian,
-                      borderRadius: BorderRadius.circular(12),
+      backgroundColor: Colors.transparent,
+      body: NebulaAtmosphericBackground(
+        child: SafeArea(
+          bottom: false,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Cosmic Header
+              Padding(
+                padding: const EdgeInsets.fromLTRB(AppTheme.gutter, 16, AppTheme.gutter, 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'EXPLORE DEPARTMENTS',
+                      style: AppTheme.labelUppercase,
                     ),
-                    child: Icon(cat['icon'] as IconData, color: AppTheme.champagne, size: 24),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    cat['name'] as String,
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: AppTheme.obsidian),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    cat['count'] as String,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary, fontWeight: FontWeight.w500),
-                  ),
-                ],
+                    const SizedBox(height: 4),
+                    Text(
+                      'Categories',
+                      style: AppTheme.displayLg,
+                    ),
+                  ],
+                ),
               ),
-            ),
-          );
-        },
+
+              // 2-Up Glass Category Grid
+              Expanded(
+                child: GridView.builder(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppTheme.gutter,
+                    8,
+                    AppTheme.gutter,
+                    110, // Reserve padding to clear floating tab bar
+                  ),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 16,
+                    mainAxisSpacing: 16,
+                    childAspectRatio: 0.95,
+                  ),
+                  itemCount: _catalogCategories.length,
+                  itemBuilder: (context, index) {
+                    final cat = _catalogCategories[index];
+                    final color = cat['color'] as Color;
+
+                    return NebulaGlassCard(
+                      borderRadius: AppTheme.radius2Xl,
+                      padding: const EdgeInsets.all(16),
+                      onTap: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            backgroundColor: AppTheme.backgroundMid,
+                            content: Text(
+                              'Browsing ${cat['name']} catalog...',
+                              style: AppTheme.bodyMd.copyWith(color: AppTheme.onSurface),
+                            ),
+                          ),
+                        );
+                      },
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          TintedIconBubble(
+                            icon: cat['icon'] as IconData,
+                            accentColor: color,
+                            size: 52,
+                            iconSize: 26,
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            cat['name'] as String,
+                            textAlign: TextAlign.center,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTheme.bodyMd.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: AppTheme.onSurface,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            cat['count'] as String,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTheme.caption.copyWith(
+                              color: AppTheme.onSurfaceMuted,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
