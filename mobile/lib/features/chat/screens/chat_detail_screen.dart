@@ -1,17 +1,23 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/widgets/nebula_glass_widgets.dart';
 
 class ChatDetailScreen extends StatefulWidget {
-  final String userName;
+  final String? userName;
+  final String? contactName;
   final String itemTitle;
-  final String initialPrice;
+  final String? initialPrice;
 
   const ChatDetailScreen({
     super.key,
-    required this.userName,
+    this.userName,
+    this.contactName,
     required this.itemTitle,
-    required this.initialPrice,
+    this.initialPrice,
   });
+
+  String get displayName => userName ?? contactName ?? 'Verified Seller';
 
   @override
   State<ChatDetailScreen> createState() => _ChatDetailScreenState();
@@ -39,6 +45,12 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     },
   ];
 
+  @override
+  void dispose() {
+    _textController.dispose();
+    super.dispose();
+  }
+
   void _sendMessage() {
     final text = _textController.text.trim();
     if (text.isEmpty) return;
@@ -53,192 +65,221 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     });
   }
 
-  void _makeCounterOffer() {
-    showDialog(
-      context: context,
-      builder: (ctx) {
-        final offerCtrl = TextEditingController(text: '4350000');
-        return AlertDialog(
-          title: const Text('Send Counter Offer'),
-          content: TextField(
-            controller: offerCtrl,
-            decoration: const InputDecoration(labelText: 'Amount (PKR)', prefixText: 'Rs. '),
-            keyboardType: TextInputType.number,
-          ),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: AppTheme.champagne, foregroundColor: AppTheme.obsidian),
-              onPressed: () {
-                Navigator.pop(ctx);
-                setState(() {
-                  _messages.add({
-                    'isMe': true,
-                    'isOffer': true,
-                    'offerAmount': 'PKR ${offerCtrl.text}',
-                    'text': 'Counter-offer: PKR ${offerCtrl.text}',
-                    'time': 'Just now',
-                  });
-                });
-              },
-              child: const Text('Submit Offer'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              widget.userName,
-              style: const TextStyle(fontSize: 16),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            Text(
-              widget.itemTitle,
-              style: const TextStyle(fontSize: 11, color: AppTheme.champagne),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-        ),
-      ),
-      body: Column(
-        children: [
-          // Item Bar
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            color: AppTheme.obsidian,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    widget.initialPrice,
-                    style: const TextStyle(color: AppTheme.champagne, fontWeight: FontWeight.bold),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+      backgroundColor: AppTheme.background,
+      body: NebulaAtmosphericBackground(
+        child: SafeArea(
+          child: Column(
+            children: [
+              // Glass Header
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: AppTheme.backgroundMid.withValues(alpha: 0.8),
+                  border: const Border(
+                    bottom: BorderSide(color: AppTheme.borderHairline),
                   ),
                 ),
-                TextButton.icon(
-                  style: TextButton.styleFrom(foregroundColor: AppTheme.champagne),
-                  icon: const Icon(Icons.local_offer_outlined, size: 16),
-                  label: const Text('Counter Offer', style: TextStyle(fontWeight: FontWeight.bold)),
-                  onPressed: _makeCounterOffer,
-                ),
-              ],
-            ),
-          ),
-
-          // Messages List
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(AppTheme.space16),
-              itemCount: _messages.length,
-              itemBuilder: (context, index) {
-                final msg = _messages[index];
-                final isMe = msg['isMe'] as bool;
-                final isOffer = msg['isOffer'] == true;
-
-                return Align(
-                  alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
-                  child: Container(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: isOffer
-                          ? AppTheme.champagneLight
-                          : (isMe ? AppTheme.obsidian : Colors.white),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: isOffer ? AppTheme.champagneDark : (isMe ? Colors.transparent : AppTheme.borderSubtle),
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.04),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
+                child: Row(
+                  children: [
+                    NebulaGlassIconButton(
+                      icon: Icons.arrow_back_rounded,
+                      color: AppTheme.onSurface,
+                      onPressed: () => Navigator.of(context).pop(),
                     ),
-                    child: Column(
-                      crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-                      children: [
-                        if (isOffer) ...[
-                          const Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.handshake_outlined, size: 16, color: AppTheme.champagneDark),
-                              SizedBox(width: 4),
-                              Text('OFFER', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.champagneDark)),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
+                    const SizedBox(width: 12),
+                    NebulaAvatar(
+                      initials: widget.displayName[0],
+                      size: 40,
+                      isOnline: true,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                           Text(
-                            msg['offerAmount'] as String,
-                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: AppTheme.obsidian),
+                            widget.displayName,
+                            style: AppTheme.bodyMd.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: AppTheme.onSurface,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          const SizedBox(height: 4),
+                          Text(
+                            widget.itemTitle,
+                            style: AppTheme.caption.copyWith(
+                              color: AppTheme.primaryLavender,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ],
-                        Text(
-                          msg['text'] as String,
-                          style: TextStyle(
-                            color: isOffer ? AppTheme.obsidian : (isMe ? Colors.white : AppTheme.textPrimary),
-                            fontSize: 14,
+                      ),
+                    ),
+                    NebulaBadgePill(
+                      label: 'ONLINE',
+                      color: AppTheme.secondaryMint,
+                    ),
+                  ],
+                ),
+              ),
+
+              // Chat Messages
+              Expanded(
+                child: ListView.builder(
+                  padding: const EdgeInsets.all(AppTheme.gutter),
+                  itemCount: _messages.length,
+                  itemBuilder: (context, index) {
+                    final msg = _messages[index];
+                    final isMe = msg['isMe'] as bool;
+                    final isOffer = (msg['isOffer'] ?? false) as bool;
+
+                    return Align(
+                      alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+                      child: Container(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        constraints: BoxConstraints(
+                          maxWidth: MediaQuery.of(context).size.width * 0.78,
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.only(
+                            topLeft: const Radius.circular(20),
+                            topRight: const Radius.circular(20),
+                            bottomLeft: Radius.circular(isMe ? 20 : 4),
+                            bottomRight: Radius.circular(isMe ? 4 : 20),
+                          ),
+                          child: BackdropFilter(
+                            filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                            child: Container(
+                              padding: const EdgeInsets.all(14),
+                              decoration: BoxDecoration(
+                                color: isMe
+                                    ? AppTheme.primaryLavender.withValues(alpha: 0.18)
+                                    : AppTheme.surfaceGlass,
+                                borderRadius: BorderRadius.only(
+                                  topLeft: const Radius.circular(20),
+                                  topRight: const Radius.circular(20),
+                                  bottomLeft: Radius.circular(isMe ? 20 : 4),
+                                  bottomRight: Radius.circular(isMe ? 4 : 20),
+                                ),
+                                border: Border.all(
+                                  color: isMe
+                                      ? AppTheme.primaryLavender.withValues(alpha: 0.35)
+                                      : AppTheme.borderHairline,
+                                ),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  if (isOffer) ...[
+                                    Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        NebulaBadgePill(
+                                          label: 'OFFER RECEIVED',
+                                          color: AppTheme.accentAmber,
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 6),
+                                  ],
+                                  Text(
+                                    msg['text'] as String,
+                                    style: AppTheme.bodyMd.copyWith(
+                                      color: AppTheme.onSurface,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Align(
+                                    alignment: Alignment.bottomRight,
+                                    child: Text(
+                                      msg['time'] as String,
+                                      style: AppTheme.caption.copyWith(
+                                        color: AppTheme.onSurfaceMuted,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          msg['time'] as String,
-                          style: TextStyle(
-                            color: isMe ? Colors.white60 : AppTheme.textSecondary,
-                            fontSize: 10,
+                      ),
+                    );
+                  },
+                ),
+              ),
+
+              // Glass Message Composer
+              ClipRRect(
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppTheme.backgroundMid.withValues(alpha: 0.85),
+                      border: const Border(
+                        top: BorderSide(color: AppTheme.borderHairline),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: AppTheme.surfaceGlass,
+                              borderRadius: BorderRadius.circular(AppTheme.radiusXl),
+                              border: Border.all(color: AppTheme.borderHairline),
+                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: TextField(
+                              controller: _textController,
+                              style: AppTheme.bodyMd.copyWith(color: AppTheme.onSurface),
+                              decoration: InputDecoration(
+                                hintText: 'Write a message...',
+                                hintStyle: AppTheme.bodySm.copyWith(color: AppTheme.onSurfaceMuted),
+                                border: InputBorder.none,
+                              ),
+                              onSubmitted: (_) => _sendMessage(),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        GestureDetector(
+                          onTap: _sendMessage,
+                          child: Container(
+                            width: 44,
+                            height: 44,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: AppTheme.primaryCtaGradient,
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: Color(0x66D8B4FE),
+                                  blurRadius: 10,
+                                ),
+                              ],
+                            ),
+                            alignment: Alignment.center,
+                            child: const Icon(
+                              Icons.send_rounded,
+                              size: 20,
+                              color: AppTheme.onPrimary,
+                            ),
                           ),
                         ),
                       ],
                     ),
                   ),
-                );
-              },
-            ),
-          ),
-
-          // Message Input Bar
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              border: Border(top: BorderSide(color: AppTheme.borderSubtle)),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _textController,
-                    decoration: const InputDecoration(
-                      hintText: 'Type your message...',
-                      border: InputBorder.none,
-                      contentPadding: EdgeInsets.symmetric(horizontal: 12),
-                    ),
-                  ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.send_rounded, color: AppTheme.champagneDark),
-                  onPressed: _sendMessage,
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

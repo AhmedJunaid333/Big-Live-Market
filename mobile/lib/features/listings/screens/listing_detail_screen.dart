@@ -1,5 +1,7 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/widgets/nebula_glass_widgets.dart';
 
 class ListingDetailScreen extends StatelessWidget {
   final Map<String, dynamic> listing;
@@ -14,300 +16,338 @@ class ListingDetailScreen extends StatelessWidget {
     final currency = listing['currency']?.toString() ?? 'PKR';
     final formattedPrice = '$currency ${(priceMinor / 100).toStringAsFixed(0)}';
     final condition = listing['condition_code']?.toString() ?? 'used';
+    final isNew = condition.toLowerCase() == 'new';
     final location = listing['location_label']?.toString() ?? 'Pakistan';
     final seller = listing['seller'] as Map<String, dynamic>?;
     final sellerName = seller?['name']?.toString() ?? 'Verified Member';
     final sellerPhone = seller?['phone_e164']?.toString() ?? '+92 300 1234567';
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(title, overflow: TextOverflow.ellipsis),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.share_outlined, color: AppTheme.champagne),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Listing link copied to clipboard!')),
-              );
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.favorite_border_rounded, color: AppTheme.champagne),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Added to your Saved Favorites!')),
-              );
-            },
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+      backgroundColor: AppTheme.background,
+      body: NebulaAtmosphericBackground(
+        child: Stack(
           children: [
-            // Image Preview Container
-            Container(
-              height: 280,
-              decoration: const BoxDecoration(
-                color: AppTheme.obsidian,
-              ),
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        width: 72,
-                        height: 72,
-                        decoration: BoxDecoration(
-                          color: AppTheme.slateCard,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: AppTheme.borderGold),
-                        ),
-                        child: const Icon(Icons.photo_library_outlined, size: 36, color: AppTheme.champagne),
-                      ),
-                      const SizedBox(height: 12),
-                      const Text(
-                        'Verified HD Preview',
-                        style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.bold),
-                      ),
-                    ],
-                  ),
-                  Positioned(
-                    bottom: 16,
-                    left: 16,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.7),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: AppTheme.borderGold),
-                      ),
-                      child: Text(
-                        condition.toUpperCase(),
-                        style: const TextStyle(color: AppTheme.champagne, fontSize: 11, fontWeight: FontWeight.w900),
-                      ),
+            // Scrollable Content
+            CustomScrollView(
+              slivers: [
+                // Glass App Bar
+                SliverAppBar(
+                  pinned: true,
+                  backgroundColor: AppTheme.backgroundMid.withValues(alpha: 0.8),
+                  surfaceTintColor: Colors.transparent,
+                  elevation: 0,
+                  leading: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: NebulaGlassIconButton(
+                      icon: Icons.arrow_back_rounded,
+                      color: AppTheme.onSurface,
+                      onPressed: () => Navigator.of(context).pop(),
                     ),
                   ),
-                  Positioned(
-                    bottom: 16,
-                    right: 16,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: AppTheme.successGreen.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: AppTheme.successGreen),
-                      ),
-                      child: const Row(
-                        children: [
-                          Icon(Icons.check_circle, size: 14, color: AppTheme.successGreen),
-                          SizedBox(width: 4),
-                          Text('ID Verified', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // Price & Title Header
-            Padding(
-              padding: const EdgeInsets.all(AppTheme.space16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    formattedPrice,
-                    style: const TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w900,
-                      color: AppTheme.champagneDark,
-                      letterSpacing: -0.5,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
+                  title: Text(
                     title,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w800,
-                      color: AppTheme.textPrimary,
-                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTheme.headlineMd.copyWith(color: AppTheme.onSurface),
                   ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      const Icon(Icons.location_on_outlined, size: 16, color: AppTheme.textSecondary),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          location,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+                  actions: [
+                    NebulaGlassIconButton(
+                      icon: Icons.share_rounded,
+                      color: AppTheme.onSurfaceVariant,
+                      onPressed: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            backgroundColor: AppTheme.backgroundMid,
+                            content: Text(
+                              'Listing link copied to clipboard!',
+                              style: AppTheme.bodyMd.copyWith(color: AppTheme.onSurface),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(width: 8),
+                    NebulaGlassIconButton(
+                      icon: Icons.favorite_border_rounded,
+                      color: AppTheme.accentPink,
+                      onPressed: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            backgroundColor: AppTheme.backgroundMid,
+                            content: Text(
+                              'Saved to Favorites!',
+                              style: AppTheme.bodyMd.copyWith(color: AppTheme.accentPink),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(width: AppTheme.gutter),
+                  ],
+                ),
+
+                // Main Details Body
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                      AppTheme.gutter,
+                      16,
+                      AppTheme.gutter,
+                      120, // Clear bottom action bar
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // Hero Image Container with Glass Overlay
+                        Container(
+                          height: 260,
+                          decoration: BoxDecoration(
+                            color: AppTheme.backgroundMid,
+                            borderRadius: BorderRadius.circular(AppTheme.radius2Xl),
+                            border: Border.all(color: AppTheme.borderHairline),
+                            boxShadow: AppTheme.glassShadow,
+                          ),
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  TintedIconBubble(
+                                    icon: Icons.photo_library_rounded,
+                                    accentColor: AppTheme.primaryLavender,
+                                    size: 64,
+                                    iconSize: 32,
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    'Verified HD Media',
+                                    style: AppTheme.bodySm.copyWith(
+                                      color: AppTheme.onSurfaceVariant,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              Positioned(
+                                bottom: 16,
+                                left: 16,
+                                child: NebulaBadgePill(
+                                  label: condition,
+                                  color: isNew ? AppTheme.accentMint : AppTheme.accentAmber,
+                                ),
+                              ),
+                              Positioned(
+                                bottom: 16,
+                                right: 16,
+                                child: NebulaBadgePill(
+                                  label: 'ID VERIFIED',
+                                  color: AppTheme.secondaryMint,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
 
-            const Divider(height: 1),
+                        const SizedBox(height: AppTheme.sectionGap),
 
-            // Seller Information Card
-            Padding(
-              padding: const EdgeInsets.all(AppTheme.space16),
-              child: Container(
-                padding: const EdgeInsets.all(AppTheme.space16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-                  border: Border.all(color: AppTheme.borderSubtle),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppTheme.obsidian.withValues(alpha: 0.04),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 28,
-                      backgroundColor: AppTheme.obsidian,
-                      child: Text(
-                        sellerName.isNotEmpty ? sellerName[0].toUpperCase() : 'S',
-                        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppTheme.champagne),
-                      ),
-                    ),
-                    const SizedBox(width: AppTheme.space16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            sellerName,
-                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                        // Price & Title Glass Card
+                        NebulaGlassCard(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'PRICE',
+                                style: AppTheme.labelUppercase,
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                formattedPrice,
+                                style: AppTheme.numeralXl.copyWith(
+                                  color: AppTheme.primaryLavender,
+                                  fontSize: 32,
+                                  shadows: const [
+                                    Shadow(
+                                      color: Color(0x66D8B4FE),
+                                      blurRadius: 16,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              Text(
+                                title,
+                                style: AppTheme.headlineMd.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                  color: AppTheme.onSurface,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Row(
+                                children: [
+                                  const Icon(
+                                    Icons.location_on_rounded,
+                                    size: 16,
+                                    color: AppTheme.onSurfaceMuted,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Expanded(
+                                    child: Text(
+                                      location,
+                                      style: AppTheme.bodySm.copyWith(
+                                        color: AppTheme.onSurfaceVariant,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 2),
-                          const Text(
-                            'Member since 2026 · Response: 100%',
-                            style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+                        ),
 
-            // Description Section
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppTheme.space16),
-              child: Container(
-                padding: const EdgeInsets.all(AppTheme.space16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-                  border: Border.all(color: AppTheme.borderSubtle),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Overview & Highlights',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.obsidian),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      description,
-                      style: const TextStyle(fontSize: 14, color: AppTheme.textPrimary, height: 1.5),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 100),
-          ],
-        ),
-      ),
-      bottomSheet: Container(
-        padding: const EdgeInsets.all(AppTheme.space16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.08),
-              blurRadius: 20,
-              offset: const Offset(0, -4),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: OutlinedButton.icon(
-                style: OutlinedButton.styleFrom(
-                  minimumSize: const Size(0, 48),
-                  side: const BorderSide(color: AppTheme.champagne, width: 1.5),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                ),
-                icon: const Icon(Icons.phone, color: AppTheme.champagneDark, size: 20),
-                label: const FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    'Call Seller',
-                    style: TextStyle(color: AppTheme.obsidian, fontWeight: FontWeight.bold),
-                  ),
-                ),
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (ctx) => AlertDialog(
-                      title: const Text('Direct Seller Contact'),
-                      content: Text('Phone number: $sellerPhone'),
-                      actions: [
-                        TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK')),
+                        const SizedBox(height: AppTheme.sectionGap),
+
+                        // Seller Glass Card
+                        NebulaGlassCard(
+                          child: Row(
+                            children: [
+                              NebulaAvatar(
+                                initials: sellerName.isNotEmpty ? sellerName[0].toUpperCase() : 'S',
+                                size: 52,
+                                isOnline: true,
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      sellerName,
+                                      style: AppTheme.bodyMd.copyWith(
+                                        fontWeight: FontWeight.w700,
+                                        color: AppTheme.onSurface,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'Member since 2026 · Response: 100%',
+                                      style: AppTheme.caption.copyWith(
+                                        color: AppTheme.onSurfaceMuted,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              NebulaBadgePill(
+                                label: 'PRO',
+                                color: AppTheme.accentPink,
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        const SizedBox(height: AppTheme.sectionGap),
+
+                        // Overview & Highlights Glass Card
+                        NebulaGlassCard(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    'OVERVIEW & HIGHLIGHTS',
+                                    style: AppTheme.labelUppercase,
+                                  ),
+                                  const Icon(
+                                    Icons.info_outline_rounded,
+                                    size: 16,
+                                    color: AppTheme.onSurfaceMuted,
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                              Text(
+                                description,
+                                style: AppTheme.bodyMd.copyWith(
+                                  color: AppTheme.onSurfaceVariant,
+                                  height: 1.6,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ],
                     ),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.champagne,
-                  foregroundColor: AppTheme.obsidian,
-                  minimumSize: const Size(0, 48),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                ),
-                icon: const Icon(Icons.chat_bubble_outline, size: 20),
-                label: const FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    'Chat / Offer',
-                    style: TextStyle(fontWeight: FontWeight.w900),
                   ),
                 ),
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Opening encrypted negotiation channel...')),
-                  );
-                },
+              ],
+            ),
+
+            // Floating Bottom Glass Action Bar
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: ClipRRect(
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppTheme.gutter,
+                      vertical: 16,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppTheme.backgroundMid.withValues(alpha: 0.85),
+                      border: const Border(
+                        top: BorderSide(color: AppTheme.borderHairline, width: 1),
+                      ),
+                    ),
+                    child: SafeArea(
+                      top: false,
+                      child: Row(
+                        children: [
+                          Expanded(
+                            flex: 2,
+                            child: NebulaButtonSecondary(
+                              label: 'Call Seller',
+                              icon: Icons.phone_rounded,
+                              onPressed: () {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    backgroundColor: AppTheme.backgroundMid,
+                                    content: Text('Calling $sellerPhone...'),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            flex: 3,
+                            child: NebulaButtonPrimary(
+                              label: 'Direct Chat',
+                              icon: const Icon(
+                                Icons.chat_bubble_rounded,
+                                size: 20,
+                                color: AppTheme.onPrimary,
+                              ),
+                              onPressed: () {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    backgroundColor: AppTheme.backgroundMid,
+                                    content: Text('Starting chat with $sellerName...'),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ),
           ],

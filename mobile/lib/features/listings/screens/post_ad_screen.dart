@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/widgets/nebula_glass_widgets.dart';
 import '../../../main.dart';
 
 class PostAdScreen extends ConsumerStatefulWidget {
@@ -21,6 +22,14 @@ class _PostAdScreenState extends ConsumerState<PostAdScreen> {
   final int _selectedCity = 1;
   String _selectedCondition = 'used';
   bool _isSubmitting = false;
+
+  final List<Map<String, dynamic>> _categories = const [
+    {'id': 1, 'name': 'Motors'},
+    {'id': 2, 'name': 'Mobiles'},
+    {'id': 3, 'name': 'Property'},
+    {'id': 4, 'name': 'Tech'},
+    {'id': 5, 'name': 'Bikes'},
+  ];
 
   @override
   void dispose() {
@@ -60,14 +69,25 @@ class _PostAdScreenState extends ConsumerState<PostAdScreen> {
         showDialog(
           context: context,
           builder: (ctx) => AlertDialog(
-            title: const Row(
+            backgroundColor: AppTheme.backgroundMid,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppTheme.radius2Xl),
+              side: const BorderSide(color: AppTheme.borderHairline),
+            ),
+            title: Row(
               children: [
-                Icon(Icons.check_circle, color: AppTheme.successGreen),
-                SizedBox(width: 8),
-                Text('Advert Published!'),
+                const Icon(Icons.check_circle_rounded, color: AppTheme.secondaryMint),
+                const SizedBox(width: 8),
+                Text(
+                  'Advert Published!',
+                  style: AppTheme.headlineMd.copyWith(color: AppTheme.onSurface),
+                ),
               ],
             ),
-            content: const Text('Your advertisement has been published to Big Live Marketplace.'),
+            content: Text(
+              'Your advertisement has been published to Big Live Marketplace.',
+              style: AppTheme.bodyMd.copyWith(color: AppTheme.onSurfaceVariant),
+            ),
             actions: [
               TextButton(
                 onPressed: () {
@@ -76,7 +96,10 @@ class _PostAdScreenState extends ConsumerState<PostAdScreen> {
                   _priceController.clear();
                   _descController.clear();
                 },
-                child: const Text('Done'),
+                child: Text(
+                  'DONE',
+                  style: AppTheme.labelMd.copyWith(color: AppTheme.primaryLavender),
+                ),
               ),
             ],
           ),
@@ -85,9 +108,14 @@ class _PostAdScreenState extends ConsumerState<PostAdScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Note: ${e.toString()} (Feed refreshed)')),
+          SnackBar(
+            backgroundColor: AppTheme.error,
+            content: Text(
+              'Advert saved offline: $e',
+              style: const TextStyle(color: Colors.white),
+            ),
+          ),
         );
-        ref.invalidate(listingsFeedProvider);
       }
     } finally {
       if (mounted) {
@@ -99,110 +127,305 @@ class _PostAdScreenState extends ConsumerState<PostAdScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Post An Advert'),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppTheme.space16),
-        child: Form(
-          key: _formKey,
+      backgroundColor: Colors.transparent,
+      body: NebulaAtmosphericBackground(
+        child: SafeArea(
+          bottom: false,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Container(
-                padding: const EdgeInsets.all(AppTheme.space16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-                  border: Border.all(color: AppTheme.borderSubtle),
-                ),
+              // Cosmic Header
+              Padding(
+                padding: const EdgeInsets.fromLTRB(AppTheme.gutter, 16, AppTheme.gutter, 12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Item Details', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.obsidian)),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _titleController,
-                      decoration: const InputDecoration(
-                        labelText: 'Ad Title *',
-                        hintText: 'e.g. Toyota Prado TX 2021 Mint Condition',
-                      ),
-                      validator: (val) => val == null || val.length < 5 ? 'Please enter a descriptive title' : null,
+                    Text(
+                      'CREATE LISTING',
+                      style: AppTheme.labelUppercase,
                     ),
-                    const SizedBox(height: 16),
-                    DropdownButtonFormField<int>(
-                      value: _selectedCategory,
-                      decoration: const InputDecoration(labelText: 'Category *'),
-                      items: const [
-                        DropdownMenuItem(value: 1, child: Text('Cars & Motors')),
-                        DropdownMenuItem(value: 2, child: Text('Mobile Phones')),
-                        DropdownMenuItem(value: 3, child: Text('Real Estate')),
-                        DropdownMenuItem(value: 4, child: Text('Electronics')),
-                      ],
-                      onChanged: (val) => setState(() => _selectedCategory = val ?? 1),
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextFormField(
-                            controller: _priceController,
-                            decoration: const InputDecoration(labelText: 'Price (PKR) *', prefixText: 'Rs. '),
-                            keyboardType: TextInputType.number,
-                            validator: (val) => val == null || val.isEmpty ? 'Required' : null,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: DropdownButtonFormField<String>(
-                            value: _selectedCondition,
-                            decoration: const InputDecoration(labelText: 'Condition *'),
-                            items: const [
-                              DropdownMenuItem(value: 'used', child: Text('Used')),
-                              DropdownMenuItem(value: 'new', child: Text('Brand New')),
-                              DropdownMenuItem(value: 'refurbished', child: Text('Refurbished')),
-                            ],
-                            onChanged: (val) => setState(() => _selectedCondition = val ?? 'used'),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _locationController,
-                      decoration: const InputDecoration(labelText: 'Location / City *'),
-                      validator: (val) => val == null || val.isEmpty ? 'Required' : null,
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _descController,
-                      decoration: const InputDecoration(
-                        labelText: 'Full Description *',
-                        hintText: 'Provide condition, package contents, warranty details...',
-                      ),
-                      maxLines: 4,
-                      validator: (val) => val == null || val.length < 10 ? 'At least 10 characters required' : null,
+                    const SizedBox(height: 4),
+                    Text(
+                      'Post an Advert',
+                      style: AppTheme.displayLg,
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: _isSubmitting ? null : _submitAd,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.champagne,
-                  foregroundColor: AppTheme.obsidian,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+
+              // Scrollable Form
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppTheme.gutter,
+                    8,
+                    AppTheme.gutter,
+                    120, // Clear floating bottom tab bar
+                  ),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // Photo Upload Slot (Dashed Glass Box)
+                        GestureDetector(
+                          onTap: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                backgroundColor: AppTheme.backgroundMid,
+                                content: Text(
+                                  'Photo selector opened',
+                                  style: AppTheme.bodyMd.copyWith(color: AppTheme.onSurface),
+                                ),
+                              ),
+                            );
+                          },
+                          child: Container(
+                            height: 120,
+                            decoration: BoxDecoration(
+                              color: AppTheme.surfaceGlass,
+                              borderRadius: BorderRadius.circular(AppTheme.radius2Xl),
+                              border: Border.all(
+                                color: AppTheme.borderHairline,
+                                width: 1.5,
+                              ),
+                            ),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                TintedIconBubble(
+                                  icon: Icons.add_a_photo_rounded,
+                                  accentColor: AppTheme.primaryLavender,
+                                  size: 48,
+                                  iconSize: 24,
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'ADD PHOTOS & MEDIA',
+                                  style: AppTheme.labelUppercase.copyWith(
+                                    color: AppTheme.primaryLavender,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(height: AppTheme.sectionGap),
+
+                        // Title Input
+                        _buildInputField(
+                          label: 'ITEM TITLE',
+                          controller: _titleController,
+                          hint: 'e.g. iPhone 15 Pro Max, Toyota Prado',
+                          validator: (v) => (v == null || v.trim().isEmpty) ? 'Please enter a title' : null,
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        // Price Input
+                        _buildInputField(
+                          label: 'PRICE (PKR)',
+                          controller: _priceController,
+                          hint: '50000',
+                          keyboardType: TextInputType.number,
+                          suffix: 'PKR',
+                          validator: (v) => (v == null || v.trim().isEmpty) ? 'Please enter price' : null,
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        // Category Chips
+                        Text(
+                          'CATEGORY',
+                          style: AppTheme.labelUppercase,
+                        ),
+                        const SizedBox(height: 8),
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            children: _categories.map((c) {
+                              final isSelected = _selectedCategory == c['id'];
+                              return Padding(
+                                padding: const EdgeInsets.only(right: 8),
+                                child: GestureDetector(
+                                  onTap: () => setState(() => _selectedCategory = c['id'] as int),
+                                  child: AnimatedContainer(
+                                    duration: const Duration(milliseconds: 200),
+                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                    decoration: BoxDecoration(
+                                      color: isSelected
+                                          ? AppTheme.primaryLavender.withValues(alpha: 0.20)
+                                          : AppTheme.surfaceGlass,
+                                      borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                                      border: Border.all(
+                                        color: isSelected
+                                            ? AppTheme.primaryLavender
+                                            : AppTheme.borderHairline,
+                                      ),
+                                    ),
+                                    child: Text(
+                                      c['name'] as String,
+                                      style: AppTheme.bodyMd.copyWith(
+                                        color: isSelected ? AppTheme.primaryLavender : AppTheme.onSurfaceMuted,
+                                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        // Condition Segmented Control
+                        Text(
+                          'CONDITION',
+                          style: AppTheme.labelUppercase,
+                        ),
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: AppTheme.surfaceGlass,
+                            borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                            border: Border.all(color: AppTheme.borderHairline),
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: GestureDetector(
+                                  onTap: () => setState(() => _selectedCondition = 'used'),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(vertical: 10),
+                                    decoration: BoxDecoration(
+                                      color: _selectedCondition == 'used'
+                                          ? Colors.white.withValues(alpha: 0.10)
+                                          : Colors.transparent,
+                                      borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                                    ),
+                                    alignment: Alignment.center,
+                                    child: Text(
+                                      'USED / PRE-OWNED',
+                                      style: AppTheme.labelUppercase.copyWith(
+                                        color: _selectedCondition == 'used'
+                                            ? AppTheme.onSurface
+                                            : AppTheme.onSurfaceMuted,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                child: GestureDetector(
+                                  onTap: () => setState(() => _selectedCondition = 'new'),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(vertical: 10),
+                                    decoration: BoxDecoration(
+                                      color: _selectedCondition == 'new'
+                                          ? Colors.white.withValues(alpha: 0.10)
+                                          : Colors.transparent,
+                                      borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                                    ),
+                                    alignment: Alignment.center,
+                                    child: Text(
+                                      'BRAND NEW',
+                                      style: AppTheme.labelUppercase.copyWith(
+                                        color: _selectedCondition == 'new'
+                                            ? AppTheme.secondaryMint
+                                            : AppTheme.onSurfaceMuted,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        // Location Input
+                        _buildInputField(
+                          label: 'LOCATION',
+                          controller: _locationController,
+                          hint: 'e.g. DHA Phase 6, Karachi',
+                          validator: (v) => (v == null || v.trim().isEmpty) ? 'Please enter location' : null,
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        // Description Input
+                        _buildInputField(
+                          label: 'DESCRIPTION',
+                          controller: _descController,
+                          hint: 'Provide details on warranty, condition, features...',
+                          maxLines: 4,
+                          validator: (v) => (v == null || v.trim().isEmpty) ? 'Please enter description' : null,
+                        ),
+
+                        const SizedBox(height: AppTheme.sectionGap),
+
+                        // Submit CTA
+                        NebulaButtonPrimary(
+                          label: 'Publish Advert',
+                          isLoading: _isSubmitting,
+                          onPressed: _submitAd,
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-                child: _isSubmitting
-                    ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.obsidian))
-                    : const Text('PUBLISH ADVERT NOW', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 0.5)),
               ),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildInputField({
+    required String label,
+    required TextEditingController controller,
+    required String hint,
+    int maxLines = 1,
+    TextInputType keyboardType = TextInputType.text,
+    String? suffix,
+    String? Function(String?)? validator,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: AppTheme.labelUppercase,
+        ),
+        const SizedBox(height: 6),
+        Container(
+          decoration: BoxDecoration(
+            color: AppTheme.surfaceGlass,
+            borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+            border: Border.all(color: AppTheme.borderHairline),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+          child: TextFormField(
+            controller: controller,
+            maxLines: maxLines,
+            keyboardType: keyboardType,
+            style: AppTheme.bodyMd.copyWith(color: AppTheme.onSurface),
+            validator: validator,
+            decoration: InputDecoration(
+              hintText: hint,
+              hintStyle: AppTheme.bodySm.copyWith(color: AppTheme.onSurfaceMuted),
+              border: InputBorder.none,
+              suffixText: suffix,
+              suffixStyle: AppTheme.labelUppercase.copyWith(color: AppTheme.primaryLavender),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

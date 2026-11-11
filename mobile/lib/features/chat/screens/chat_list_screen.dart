@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/widgets/nebula_glass_widgets.dart';
 import 'chat_detail_screen.dart';
 
 class ChatListScreen extends StatelessWidget {
@@ -35,86 +36,136 @@ class ChatListScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Direct Inquiries & Chats'),
-      ),
-      body: ListView.separated(
-        itemCount: _threads.length,
-        separatorBuilder: (_, __) => const Divider(height: 1),
-        itemBuilder: (context, index) {
-          final chat = _threads[index];
-          final unread = (chat['unread'] ?? 0) as int;
-
-          return ListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            leading: CircleAvatar(
-              radius: 26,
-              backgroundColor: AppTheme.obsidian,
-              child: Text(
-                (chat['name'] as String)[0],
-                style: const TextStyle(color: AppTheme.champagne, fontWeight: FontWeight.bold, fontSize: 18),
+      backgroundColor: Colors.transparent,
+      body: NebulaAtmosphericBackground(
+        child: SafeArea(
+          bottom: false,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Cosmic Header
+              Padding(
+                padding: const EdgeInsets.fromLTRB(AppTheme.gutter, 16, AppTheme.gutter, 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'CONVERSATIONS',
+                      style: AppTheme.labelUppercase,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Direct Inquiries',
+                      style: AppTheme.displayLg,
+                    ),
+                  ],
+                ),
               ),
-            ),
-            title: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    chat['name'] as String,
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                    overflow: TextOverflow.ellipsis,
+
+              // Chat Thread List
+              Expanded(
+                child: ListView.separated(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppTheme.gutter,
+                    8,
+                    AppTheme.gutter,
+                    120, // Clear floating bottom tab bar
                   ),
+                  itemCount: _threads.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 12),
+                  itemBuilder: (context, index) {
+                    final chat = _threads[index];
+                    final unread = (chat['unread'] ?? 0) as int;
+
+                    return NebulaGlassCard(
+                      padding: const EdgeInsets.all(16),
+                      borderRadius: AppTheme.radius2Xl,
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => ChatDetailScreen(
+                              contactName: chat['name'] as String,
+                              itemTitle: chat['item'] as String,
+                            ),
+                          ),
+                        );
+                      },
+                      child: Row(
+                        children: [
+                          NebulaAvatar(
+                            initials: (chat['name'] as String)[0],
+                            size: 48,
+                            isOnline: unread > 0,
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        chat['name'] as String,
+                                        style: AppTheme.bodyMd.copyWith(
+                                          fontWeight: FontWeight.w700,
+                                          color: AppTheme.onSurface,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    Text(
+                                      chat['time'] as String,
+                                      style: AppTheme.caption.copyWith(
+                                        color: AppTheme.onSurfaceMuted,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  chat['item'] as String,
+                                  style: AppTheme.bodySm.copyWith(
+                                    color: AppTheme.primaryLavender,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 4),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        chat['lastMessage'] as String,
+                                        style: AppTheme.bodySm.copyWith(
+                                          color: AppTheme.onSurfaceVariant,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    if (unread > 0)
+                                      NebulaBadgePill(
+                                        label: '$unread NEW',
+                                        color: AppTheme.accentMint,
+                                      ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
                 ),
-                Text(chat['time'] as String, style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary)),
-              ],
-            ),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 4),
-                Text(
-                  chat['item'] as String,
-                  style: const TextStyle(fontSize: 12, color: AppTheme.champagneDark, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  chat['lastMessage'] as String,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: unread > 0 ? AppTheme.textPrimary : AppTheme.textSecondary,
-                    fontWeight: unread > 0 ? FontWeight.bold : FontWeight.normal,
-                    fontSize: 13,
-                  ),
-                ),
-              ],
-            ),
-            trailing: unread > 0
-                ? Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: const BoxDecoration(
-                      color: AppTheme.champagne,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Text(
-                      unread.toString(),
-                      style: const TextStyle(color: AppTheme.obsidian, fontSize: 10, fontWeight: FontWeight.bold),
-                    ),
-                  )
-                : null,
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => ChatDetailScreen(
-                    userName: chat['name'] as String,
-                    itemTitle: chat['item'] as String,
-                    initialPrice: chat['price'] as String,
-                  ),
-                ),
-              );
-            },
-          );
-        },
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
