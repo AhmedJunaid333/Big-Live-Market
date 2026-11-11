@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/widgets/nebula_glass_widgets.dart';
 import '../providers/auth_provider.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -33,7 +34,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     if (success && mounted) {
       Navigator.of(context).pop();
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Logged in successfully!')),
+        SnackBar(
+          backgroundColor: AppTheme.backgroundMid,
+          content: Text(
+            'Logged in successfully!',
+            style: AppTheme.bodyMd.copyWith(color: AppTheme.secondaryMint),
+          ),
+        ),
       );
     }
   }
@@ -50,123 +57,227 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final authState = ref.watch(authProvider);
 
     return Scaffold(
+      backgroundColor: AppTheme.background,
       appBar: AppBar(
-        title: const Text('Sign In to Big Live'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: NebulaGlassIconButton(
+            icon: Icons.arrow_back_rounded,
+            color: AppTheme.onSurface,
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ),
+        title: Text(
+          'Sign In',
+          style: AppTheme.headlineMd.copyWith(color: AppTheme.onSurface),
+        ),
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(AppTheme.space24),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const SizedBox(height: AppTheme.space8),
-                const Center(
-                  child: Text(
-                    'Welcome to Big Live',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.primaryNavy,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: AppTheme.space8),
-                const Center(
-                  child: Text(
-                    'Enter your credentials or choose a demo role below',
-                    style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
-                  ),
-                ),
-                const SizedBox(height: AppTheme.space24),
-                if (authState.errorMessage != null)
-                  Container(
-                    margin: const EdgeInsets.only(bottom: AppTheme.space16),
-                    padding: const EdgeInsets.all(AppTheme.space12),
-                    decoration: BoxDecoration(
-                      color: AppTheme.errorRed.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
-                      border: Border.all(color: AppTheme.errorRed.withValues(alpha: 0.3)),
-                    ),
-                    child: Text(
-                      authState.errorMessage!,
-                      style: const TextStyle(color: AppTheme.errorRed, fontSize: 13),
-                    ),
-                  ),
-                TextFormField(
-                  controller: _emailController,
-                  decoration: const InputDecoration(
-                    labelText: 'Email Address',
-                    prefixIcon: Icon(Icons.email_outlined),
-                  ),
-                  keyboardType: TextInputType.emailAddress,
-                  validator: (val) {
-                    if (val == null || val.isEmpty) return 'Please enter your email';
-                    return null;
-                  },
-                ),
-                const SizedBox(height: AppTheme.space16),
-                TextFormField(
-                  controller: _passwordController,
-                  decoration: const InputDecoration(
-                    labelText: 'Password',
-                    prefixIcon: Icon(Icons.lock_outline),
-                  ),
-                  obscureText: true,
-                  validator: (val) {
-                    if (val == null || val.isEmpty) return 'Please enter your password';
-                    return null;
-                  },
-                ),
-                const SizedBox(height: AppTheme.space24),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.champagne,
-                    foregroundColor: AppTheme.obsidian,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                  ),
-                  onPressed: authState.isLoading ? null : _handleLogin,
-                  child: authState.isLoading
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.obsidian),
-                        )
-                      : const Text('Sign In', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                ),
+      body: NebulaAtmosphericBackground(
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(AppTheme.gutter),
+              child: Form(
+                key: _formKey,
+                child: NebulaGlassCard(
+                  padding: const EdgeInsets.all(AppTheme.cardPadding),
+                  borderRadius: AppTheme.radius2Xl,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // Header
+                      Center(
+                        child: TintedIconBubble(
+                          icon: Icons.lock_open_rounded,
+                          accentColor: AppTheme.primaryLavender,
+                          size: 56,
+                          iconSize: 28,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Center(
+                        child: Text(
+                          'Welcome Back',
+                          style: AppTheme.headlineMd.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: AppTheme.onSurface,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Center(
+                        child: Text(
+                          'Sign in to your Big Live cosmos account',
+                          style: AppTheme.bodySm.copyWith(
+                            color: AppTheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
 
-                const SizedBox(height: AppTheme.space32),
-                const Divider(),
-                const SizedBox(height: AppTheme.space12),
-                const Text(
-                  'Quick 1-Tap Demo Credentials:',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppTheme.textPrimary),
+                      // Error message banner
+                      if (authState.errorMessage != null) ...[
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: AppTheme.error.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                            border: Border.all(color: AppTheme.error.withValues(alpha: 0.4)),
+                          ),
+                          child: Text(
+                            authState.errorMessage!,
+                            style: AppTheme.bodySm.copyWith(color: AppTheme.error),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+
+                      // Email input
+                      Text(
+                        'EMAIL ADDRESS',
+                        style: AppTheme.labelUppercase,
+                      ),
+                      const SizedBox(height: 6),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: AppTheme.surfaceGlass,
+                          borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                          border: Border.all(color: AppTheme.borderHairline),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: TextFormField(
+                          controller: _emailController,
+                          keyboardType: TextInputType.emailAddress,
+                          style: AppTheme.bodyMd.copyWith(color: AppTheme.onSurface),
+                          validator: (v) => (v == null || v.isEmpty) ? 'Please enter email' : null,
+                          decoration: InputDecoration(
+                            hintText: 'user@example.com',
+                            hintStyle: AppTheme.bodySm.copyWith(color: AppTheme.onSurfaceMuted),
+                            prefixIcon: const Icon(
+                              Icons.email_rounded,
+                              size: 18,
+                              color: AppTheme.primaryLavender,
+                            ),
+                            border: InputBorder.none,
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // Password input
+                      Text(
+                        'PASSWORD',
+                        style: AppTheme.labelUppercase,
+                      ),
+                      const SizedBox(height: 6),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: AppTheme.surfaceGlass,
+                          borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                          border: Border.all(color: AppTheme.borderHairline),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: TextFormField(
+                          controller: _passwordController,
+                          obscureText: true,
+                          style: AppTheme.bodyMd.copyWith(color: AppTheme.onSurface),
+                          validator: (v) => (v == null || v.isEmpty) ? 'Please enter password' : null,
+                          decoration: InputDecoration(
+                            hintText: '••••••••',
+                            hintStyle: AppTheme.bodySm.copyWith(color: AppTheme.onSurfaceMuted),
+                            prefixIcon: const Icon(
+                              Icons.key_rounded,
+                              size: 18,
+                              color: AppTheme.primaryLavender,
+                            ),
+                            border: InputBorder.none,
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: AppTheme.sectionGap),
+
+                      // Sign In Primary Button
+                      NebulaButtonPrimary(
+                        label: 'Sign In',
+                        isLoading: authState.isLoading,
+                        onPressed: _handleLogin,
+                      ),
+
+                      const SizedBox(height: 24),
+                      const Divider(color: AppTheme.borderHairline),
+                      const SizedBox(height: 16),
+
+                      Text(
+                        'DEMO ROLES (1-TAP FILL)',
+                        style: AppTheme.labelUppercase.copyWith(
+                          color: AppTheme.onSurfaceMuted,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildRoleChip(
+                              label: 'Admin',
+                              color: AppTheme.accentPink,
+                              onTap: () => _fillCredentials('admin@biglive.pk', 'Admin@12345'),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: _buildRoleChip(
+                              label: 'Seller',
+                              color: AppTheme.secondaryMint,
+                              onTap: () => _fillCredentials('seller@biglive.pk', 'Seller@12345'),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: _buildRoleChip(
+                              label: 'Buyer',
+                              color: AppTheme.accentBlue,
+                              onTap: () => _fillCredentials('buyer@biglive.pk', 'Buyer@12345'),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-                const SizedBox(height: AppTheme.space8),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    ActionChip(
-                      avatar: const Icon(Icons.security, size: 16, color: AppTheme.obsidian),
-                      label: const Text('Admin'),
-                      onPressed: () => _fillCredentials('admin@biglive.pk', 'Admin@12345'),
-                    ),
-                    ActionChip(
-                      avatar: const Icon(Icons.storefront, size: 16, color: AppTheme.obsidian),
-                      label: const Text('Seller'),
-                      onPressed: () => _fillCredentials('seller@biglive.pk', 'Seller@12345'),
-                    ),
-                    ActionChip(
-                      avatar: const Icon(Icons.person, size: 16, color: AppTheme.obsidian),
-                      label: const Text('Buyer'),
-                      onPressed: () => _fillCredentials('buyer@biglive.pk', 'Buyer@12345'),
-                    ),
-                  ],
-                ),
-              ],
+              ),
             ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRoleChip({
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.15),
+          borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+          border: Border.all(
+            color: color.withValues(alpha: 0.3),
+          ),
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          label,
+          style: AppTheme.labelUppercase.copyWith(
+            color: color,
+            fontWeight: FontWeight.w700,
           ),
         ),
       ),

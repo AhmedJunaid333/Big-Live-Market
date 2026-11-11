@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:big_live_mobile/core/theme/app_theme.dart';
 import 'package:big_live_mobile/core/widgets/nebula_glass_widgets.dart';
+import 'package:big_live_mobile/features/categories/screens/categories_screen.dart';
+import 'package:big_live_mobile/features/profile/screens/profile_screen.dart';
+import 'package:big_live_mobile/features/listings/screens/listing_detail_screen.dart';
+import 'package:big_live_mobile/features/listings/screens/post_ad_screen.dart';
+import 'package:big_live_mobile/features/auth/screens/login_screen.dart';
 
 void main() {
   group('Nebula Glass Mobile Design System Tokens', () {
@@ -70,6 +76,88 @@ void main() {
       expect(find.text('PUBLISH ADVERT'), findsOneWidget);
       await tester.tap(find.text('PUBLISH ADVERT'));
       expect(tapped, isTrue);
+    });
+
+    testWidgets('CategoriesScreen renders glass cards and departments', (tester) async {
+      await tester.pumpWidget(
+        const ProviderScope(
+          child: MaterialApp(
+            home: CategoriesScreen(),
+          ),
+        ),
+      );
+
+      expect(find.text('Categories'), findsOneWidget);
+      expect(find.text('Motors & Cars'), findsOneWidget);
+      expect(find.text('Mobile Phones'), findsOneWidget);
+      expect(find.byType(NebulaGlassCard), findsWidgets);
+    });
+
+    testWidgets('ProfileScreen renders guest card in Nebula Glass', (tester) async {
+      await tester.pumpWidget(
+        const ProviderScope(
+          child: MaterialApp(
+            home: ProfileScreen(),
+          ),
+        ),
+      );
+
+      expect(find.text('Profile'), findsOneWidget);
+      expect(find.text('Log in to your account'), findsOneWidget);
+      expect(find.text('SIGN IN / REGISTER'), findsOneWidget);
+    });
+
+    testWidgets('ListingDetailScreen renders glass cards and actions', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ListingDetailScreen(
+            listing: {
+              'title': 'Test Luxury Sedan',
+              'price_minor': 500000000,
+              'currency': 'PKR',
+              'condition_code': 'new',
+              'location_label': 'Lahore, Pakistan',
+              'description': 'Pristine showroom condition.',
+              'seller': {'name': 'Shahid Khan', 'phone_e164': '+923001112233'}
+            },
+          ),
+        ),
+      );
+
+      expect(find.text('Test Luxury Sedan'), findsWidgets);
+      expect(find.text('PKR 5000000'), findsOneWidget);
+      expect(find.text('Shahid Khan'), findsOneWidget);
+      expect(find.text('DIRECT CHAT'), findsOneWidget);
+    });
+
+    testWidgets('PostAdScreen renders glass form and submit button', (tester) async {
+      await tester.pumpWidget(
+        const ProviderScope(
+          child: MaterialApp(
+            home: PostAdScreen(),
+          ),
+        ),
+      );
+
+      expect(find.text('Post an Advert'), findsOneWidget);
+      expect(find.text('ITEM TITLE'), findsOneWidget);
+      expect(find.text('PUBLISH ADVERT'), findsOneWidget);
+    });
+
+    testWidgets('LoginScreen renders glass sign in form and demo roles', (tester) async {
+      await tester.pumpWidget(
+        const ProviderScope(
+          child: MaterialApp(
+            home: LoginScreen(),
+          ),
+        ),
+      );
+
+      expect(find.text('Welcome Back'), findsOneWidget);
+      expect(find.text('EMAIL ADDRESS'), findsOneWidget);
+      expect(find.text('SIGN IN'), findsOneWidget);
+      expect(find.text('Admin'), findsOneWidget);
+      expect(find.text('Seller'), findsOneWidget);
     });
   });
 }
