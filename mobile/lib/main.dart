@@ -7,6 +7,7 @@ import 'features/chat/screens/chat_list_screen.dart';
 import 'features/listings/screens/listing_detail_screen.dart';
 import 'features/listings/screens/post_ad_screen.dart';
 import 'features/profile/screens/profile_screen.dart';
+import 'features/splash/screens/splash_screen.dart';
 
 final apiClientProvider = Provider<ApiClient>((ref) => ApiClient());
 
@@ -72,7 +73,7 @@ class BigLiveApp extends StatelessWidget {
     return MaterialApp(
       title: 'Big Live Marketplace',
       theme: AppTheme.lightTheme,
-      home: const MainNavigationShell(),
+      home: const SplashScreen(),
       debugShowCheckedModeBanner: false,
     );
   }
