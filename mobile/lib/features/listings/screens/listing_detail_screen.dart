@@ -311,8 +311,9 @@ class ListingDetailScreen extends StatelessWidget {
                           Expanded(
                             flex: 2,
                             child: NebulaButtonSecondary(
-                              label: 'Call Seller',
+                              label: 'Call',
                               icon: Icons.phone_rounded,
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 14),
                               onPressed: () {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
@@ -323,14 +324,15 @@ class ListingDetailScreen extends StatelessWidget {
                               },
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: 10),
                           Expanded(
                             flex: 3,
                             child: NebulaButtonPrimary(
                               label: 'Direct Chat',
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
                               icon: const Icon(
                                 Icons.chat_bubble_rounded,
-                                size: 20,
+                                size: 18,
                                 color: AppTheme.onPrimary,
                               ),
                               onPressed: () {

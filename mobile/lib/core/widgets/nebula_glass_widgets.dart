@@ -158,6 +158,8 @@ class NebulaButtonPrimary extends StatelessWidget {
   final VoidCallback? onPressed;
   final Widget? icon;
   final bool isLoading;
+  final EdgeInsetsGeometry? padding;
+  final TextStyle? textStyle;
 
   const NebulaButtonPrimary({
     super.key,
@@ -165,6 +167,8 @@ class NebulaButtonPrimary extends StatelessWidget {
     required this.onPressed,
     this.icon,
     this.isLoading = false,
+    this.padding,
+    this.textStyle,
   });
 
   @override
@@ -180,7 +184,7 @@ class NebulaButtonPrimary extends StatelessWidget {
           borderRadius: BorderRadius.circular(AppTheme.radius2Xl),
           onTap: isLoading ? null : onPressed,
           child: Ink(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
+            padding: padding ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
             decoration: BoxDecoration(
               gradient: AppTheme.primaryCtaGradient,
               borderRadius: BorderRadius.circular(AppTheme.radius2Xl),
@@ -201,11 +205,15 @@ class NebulaButtonPrimary extends StatelessWidget {
                       children: [
                         if (icon != null) ...[
                           icon!,
-                          const SizedBox(width: 8),
+                          const SizedBox(width: 6),
                         ],
-                        Text(
-                          label.toUpperCase(),
-                          style: AppTheme.ctaLg,
+                        Flexible(
+                          child: Text(
+                            label.toUpperCase(),
+                            style: textStyle ?? AppTheme.ctaLg.copyWith(fontSize: 15),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          ),
                         ),
                       ],
                     ),
@@ -222,12 +230,14 @@ class NebulaButtonSecondary extends StatelessWidget {
   final String label;
   final VoidCallback? onPressed;
   final IconData? icon;
+  final EdgeInsetsGeometry? padding;
 
   const NebulaButtonSecondary({
     super.key,
     required this.label,
     required this.onPressed,
     this.icon,
+    this.padding,
   });
 
   @override
@@ -238,7 +248,7 @@ class NebulaButtonSecondary extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppTheme.radiusSm),
         onTap: onPressed,
         child: Ink(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding: padding ?? const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
           decoration: BoxDecoration(
             color: AppTheme.primaryLavender.withValues(alpha: 0.20),
             borderRadius: BorderRadius.circular(AppTheme.radiusSm),
@@ -253,11 +263,15 @@ class NebulaButtonSecondary extends StatelessWidget {
             children: [
               if (icon != null) ...[
                 Icon(icon, size: 16, color: AppTheme.primaryLavender),
-                const SizedBox(width: 6),
+                const SizedBox(width: 4),
               ],
-              Text(
-                label,
-                style: AppTheme.labelMd,
+              Flexible(
+                child: Text(
+                  label,
+                  style: AppTheme.labelMd,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
               ),
             ],
           ),
