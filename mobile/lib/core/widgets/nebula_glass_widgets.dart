@@ -22,74 +22,10 @@ class NebulaAtmosphericBackground extends StatelessWidget {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          if (showOrbs) ...[
-            // Purple bloom orb - top right
-            Positioned(
-              top: -60,
-              right: -60,
-              child: IgnorePointer(
-                child: Container(
-                  width: 300,
-                  height: 300,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: AppTheme.glowPurple,
-                    boxShadow: const [
-                      BoxShadow(
-                        color: AppTheme.glowPurple,
-                        blurRadius: 90,
-                        spreadRadius: 40,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+          if (showOrbs)
+            const RepaintBoundary(
+              child: _StaticOrbsLayer(),
             ),
-            // Indigo bloom orb - bottom left
-            Positioned(
-              bottom: 80,
-              left: -80,
-              child: IgnorePointer(
-                child: Container(
-                  width: 320,
-                  height: 320,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: AppTheme.glowIndigo,
-                    boxShadow: const [
-                      BoxShadow(
-                        color: AppTheme.glowIndigo,
-                        blurRadius: 100,
-                        spreadRadius: 40,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            // Teal bloom orb - mid right
-            Positioned(
-              top: MediaQuery.of(context).size.height * 0.45,
-              right: -40,
-              child: IgnorePointer(
-                child: Container(
-                  width: 220,
-                  height: 220,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: AppTheme.glowTeal,
-                    boxShadow: const [
-                      BoxShadow(
-                        color: AppTheme.glowTeal,
-                        blurRadius: 80,
-                        spreadRadius: 20,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ],
           child,
         ],
       ),
@@ -97,7 +33,85 @@ class NebulaAtmosphericBackground extends StatelessWidget {
   }
 }
 
-/// Translucent frosted glass card with hairline border and backdrop blur
+class _StaticOrbsLayer extends StatelessWidget {
+  const _StaticOrbsLayer();
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        // Purple bloom orb - top right
+        Positioned(
+          top: -60,
+          right: -60,
+          child: IgnorePointer(
+            child: Container(
+              width: 300,
+              height: 300,
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppTheme.glowPurple,
+                boxShadow: [
+                  BoxShadow(
+                    color: AppTheme.glowPurple,
+                    blurRadius: 70,
+                    spreadRadius: 30,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        // Indigo bloom orb - bottom left
+        Positioned(
+          bottom: 80,
+          left: -80,
+          child: IgnorePointer(
+            child: Container(
+              width: 320,
+              height: 320,
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppTheme.glowIndigo,
+                boxShadow: [
+                  BoxShadow(
+                    color: AppTheme.glowIndigo,
+                    blurRadius: 80,
+                    spreadRadius: 30,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        // Teal bloom orb - mid right
+        Positioned(
+          top: 360,
+          right: -40,
+          child: IgnorePointer(
+            child: Container(
+              width: 220,
+              height: 220,
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppTheme.glowTeal,
+                boxShadow: [
+                  BoxShadow(
+                    color: AppTheme.glowTeal,
+                    blurRadius: 60,
+                    spreadRadius: 20,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Translucent frosted glass card with hairline border and silky smooth performance
 class NebulaGlassCard extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry? padding;
@@ -105,6 +119,7 @@ class NebulaGlassCard extends StatelessWidget {
   final VoidCallback? onTap;
   final Border? border;
   final Color? color;
+  final bool useBlur;
 
   const NebulaGlassCard({
     super.key,
@@ -114,34 +129,56 @@ class NebulaGlassCard extends StatelessWidget {
     this.onTap,
     this.border,
     this.color,
+    this.useBlur = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final radius = borderRadius ?? AppTheme.radius2Xl;
 
-    Widget cardBody = ClipRRect(
-      borderRadius: BorderRadius.circular(radius),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-        child: Container(
-          padding: padding ?? const EdgeInsets.all(AppTheme.cardPadding),
-          decoration: BoxDecoration(
-            color: color ?? AppTheme.surfaceGlass,
-            borderRadius: BorderRadius.circular(radius),
-            border: border ?? Border.all(color: AppTheme.borderHairline, width: 1),
-            boxShadow: AppTheme.glassShadow,
-          ),
-          child: child,
-        ),
+    final containerDecoration = BoxDecoration(
+      color: color ?? AppTheme.surfaceGlass,
+      gradient: const LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          Color(0x1AFFFFFF), // 10% translucent white highlight
+          Color(0x08FFFFFF), // 3% deep glass fill
+        ],
       ),
+      borderRadius: BorderRadius.circular(radius),
+      border: border ?? Border.all(color: AppTheme.borderHairline, width: 1),
+      boxShadow: AppTheme.glassShadow,
     );
+
+    Widget cardBody;
+    if (useBlur) {
+      cardBody = ClipRRect(
+        borderRadius: BorderRadius.circular(radius),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+          child: Container(
+            padding: padding ?? const EdgeInsets.all(AppTheme.cardPadding),
+            decoration: containerDecoration,
+            child: child,
+          ),
+        ),
+      );
+    } else {
+      cardBody = Container(
+        padding: padding ?? const EdgeInsets.all(AppTheme.cardPadding),
+        decoration: containerDecoration,
+        child: child,
+      );
+    }
 
     if (onTap != null) {
       return Material(
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(radius),
+          splashColor: AppTheme.primaryLavender.withValues(alpha: 0.12),
+          highlightColor: AppTheme.primaryLavender.withValues(alpha: 0.06),
           onTap: onTap,
           child: cardBody,
         ),
@@ -499,76 +536,78 @@ class FloatingGlassTabBar extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.fromLTRB(AppTheme.gutter, 0, AppTheme.gutter, 24),
       height: 64,
-      child: Stack(
-        clipBehavior: Clip.none,
-        alignment: Alignment.center,
-        children: [
-          // Glass Bar Container
-          ClipRRect(
-            borderRadius: BorderRadius.circular(AppTheme.radius2Xl),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-              child: Container(
-                height: 64,
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                decoration: BoxDecoration(
-                  color: AppTheme.backgroundMid.withValues(alpha: 0.85),
-                  borderRadius: BorderRadius.circular(AppTheme.radius2Xl),
-                  border: Border.all(color: AppTheme.borderHairline, width: 1),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Color(0x80000000),
-                      blurRadius: 50,
-                      offset: Offset(0, 25),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    _buildTabItem(0, Icons.home_rounded, 'Home'),
-                    _buildTabItem(1, Icons.grid_view_rounded, 'Categories'),
-                    const SizedBox(width: 56), // Gap for center floating FAB
-                    _buildTabItem(3, Icons.chat_bubble_rounded, 'Chats'),
-                    _buildTabItem(4, Icons.person_rounded, 'Profile'),
-                  ],
-                ),
-              ),
-            ),
-          ),
-
-          // Center FAB button that breaks the top edge
-          Positioned(
-            top: -20,
-            child: GestureDetector(
-              onTap: onCenterFabPressed,
-              child: Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: AppTheme.primaryCtaGradient,
-                  border: Border.all(
-                    color: AppTheme.background,
-                    width: 4,
+      child: RepaintBoundary(
+        child: Stack(
+          clipBehavior: Clip.none,
+          alignment: Alignment.center,
+          children: [
+            // Glass Bar Container
+            ClipRRect(
+              borderRadius: BorderRadius.circular(AppTheme.radius2Xl),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                child: Container(
+                  height: 64,
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  decoration: BoxDecoration(
+                    color: AppTheme.backgroundMid.withValues(alpha: 0.88),
+                    borderRadius: BorderRadius.circular(AppTheme.radius2Xl),
+                    border: Border.all(color: AppTheme.borderHairline, width: 1),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color(0x80000000),
+                        blurRadius: 30,
+                        offset: Offset(0, 15),
+                      ),
+                    ],
                   ),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Color(0x66D8B4FE), // rgba(216,180,254,0.40)
-                      blurRadius: 20,
-                      spreadRadius: 2,
-                    ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.add_circle_rounded,
-                  size: 32,
-                  color: AppTheme.onPrimary,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      _buildTabItem(0, Icons.home_rounded, 'Home'),
+                      _buildTabItem(1, Icons.grid_view_rounded, 'Categories'),
+                      const SizedBox(width: 56), // Gap for center floating FAB
+                      _buildTabItem(3, Icons.chat_bubble_rounded, 'Chats'),
+                      _buildTabItem(4, Icons.person_rounded, 'Profile'),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
+
+            // Center FAB button that breaks the top edge
+            Positioned(
+              top: -20,
+              child: GestureDetector(
+                onTap: onCenterFabPressed,
+                child: Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: AppTheme.primaryCtaGradient,
+                    border: Border.all(
+                      color: AppTheme.background,
+                      width: 4,
+                    ),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color(0x66D8B4FE), // rgba(216,180,254,0.40)
+                        blurRadius: 16,
+                        spreadRadius: 2,
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.add_circle_rounded,
+                    size: 32,
+                    color: AppTheme.onPrimary,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

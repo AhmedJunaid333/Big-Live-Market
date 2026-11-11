@@ -136,6 +136,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
               // Chat Messages
               Expanded(
                 child: ListView.builder(
+                  physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+                  cacheExtent: 600,
                   padding: const EdgeInsets.all(AppTheme.gutter),
                   itemCount: _messages.length,
                   itemBuilder: (context, index) {
@@ -143,73 +145,74 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                     final isMe = msg['isMe'] as bool;
                     final isOffer = (msg['isOffer'] ?? false) as bool;
 
-                    return Align(
-                      alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
-                      child: Container(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        constraints: BoxConstraints(
-                          maxWidth: MediaQuery.of(context).size.width * 0.78,
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.only(
-                            topLeft: const Radius.circular(20),
-                            topRight: const Radius.circular(20),
-                            bottomLeft: Radius.circular(isMe ? 20 : 4),
-                            bottomRight: Radius.circular(isMe ? 4 : 20),
+                    return RepaintBoundary(
+                      child: Align(
+                        alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+                        child: Container(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          constraints: BoxConstraints(
+                            maxWidth: MediaQuery.of(context).size.width * 0.78,
                           ),
-                          child: BackdropFilter(
-                            filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-                            child: Container(
-                              padding: const EdgeInsets.all(14),
-                              decoration: BoxDecoration(
-                                color: isMe
-                                    ? AppTheme.primaryLavender.withValues(alpha: 0.18)
-                                    : AppTheme.surfaceGlass,
-                                borderRadius: BorderRadius.only(
-                                  topLeft: const Radius.circular(20),
-                                  topRight: const Radius.circular(20),
-                                  bottomLeft: Radius.circular(isMe ? 20 : 4),
-                                  bottomRight: Radius.circular(isMe ? 4 : 20),
-                                ),
-                                border: Border.all(
-                                  color: isMe
-                                      ? AppTheme.primaryLavender.withValues(alpha: 0.35)
-                                      : AppTheme.borderHairline,
-                                ),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  if (isOffer) ...[
-                                    Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        NebulaBadgePill(
-                                          label: 'OFFER RECEIVED',
-                                          color: AppTheme.accentAmber,
-                                        ),
+                          child: Container(
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: isMe
+                                    ? [
+                                        AppTheme.primaryLavender.withValues(alpha: 0.28),
+                                        AppTheme.primaryLavender.withValues(alpha: 0.14),
+                                      ]
+                                    : [
+                                        const Color(0x22FFFFFF),
+                                        const Color(0x0CFFFFFF),
                                       ],
-                                    ),
-                                    const SizedBox(height: 6),
-                                  ],
-                                  Text(
-                                    msg['text'] as String,
-                                    style: AppTheme.bodyMd.copyWith(
-                                      color: AppTheme.onSurface,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Align(
-                                    alignment: Alignment.bottomRight,
-                                    child: Text(
-                                      msg['time'] as String,
-                                      style: AppTheme.caption.copyWith(
-                                        color: AppTheme.onSurfaceMuted,
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
                               ),
+                              borderRadius: BorderRadius.only(
+                                topLeft: const Radius.circular(20),
+                                topRight: const Radius.circular(20),
+                                bottomLeft: Radius.circular(isMe ? 20 : 4),
+                                bottomRight: Radius.circular(isMe ? 4 : 20),
+                              ),
+                              border: Border.all(
+                                color: isMe
+                                    ? AppTheme.primaryLavender.withValues(alpha: 0.40)
+                                    : AppTheme.borderHairline,
+                              ),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                if (isOffer) ...[
+                                  Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      NebulaBadgePill(
+                                        label: 'OFFER RECEIVED',
+                                        color: AppTheme.accentAmber,
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 6),
+                                ],
+                                Text(
+                                  msg['text'] as String,
+                                  style: AppTheme.bodyMd.copyWith(
+                                    color: AppTheme.onSurface,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Align(
+                                  alignment: Alignment.bottomRight,
+                                  child: Text(
+                                    msg['time'] as String,
+                                    style: AppTheme.caption.copyWith(
+                                      color: AppTheme.onSurfaceMuted,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ),

@@ -50,6 +50,7 @@ void main() {
           home: Scaffold(
             body: NebulaAtmosphericBackground(
               child: NebulaGlassCard(
+                useBlur: true,
                 child: const Text('Glass Content', style: TextStyle(color: Colors.white)),
               ),
             ),

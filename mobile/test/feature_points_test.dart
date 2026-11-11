@@ -6,7 +6,6 @@ import 'package:big_live_mobile/features/auth/screens/register_screen.dart';
 import 'package:big_live_mobile/features/listings/providers/favorites_provider.dart';
 import 'package:big_live_mobile/features/listings/providers/filter_provider.dart';
 import 'package:big_live_mobile/features/listings/screens/favorites_screen.dart';
-import 'package:big_live_mobile/features/profile/screens/devices_screen.dart';
 import 'package:big_live_mobile/features/profile/screens/verification_screen.dart';
 
 void main() {

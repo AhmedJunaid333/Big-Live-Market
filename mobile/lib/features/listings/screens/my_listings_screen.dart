@@ -251,6 +251,8 @@ class _MyListingsScreenState extends ConsumerState<MyListingsScreen> {
                       color: AppTheme.primaryLavender,
                       onRefresh: () async => ref.invalidate(myListingsFutureProvider),
                       child: ListView.separated(
+                        physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+                        cacheExtent: 600,
                         padding: const EdgeInsets.all(AppTheme.gutter),
                         itemCount: filtered.length,
                         separatorBuilder: (_, __) => const SizedBox(height: 12),
@@ -264,7 +266,8 @@ class _MyListingsScreenState extends ConsumerState<MyListingsScreen> {
                           final isPaused = status == 'paused';
                           final isSold = status == 'sold';
 
-                          return NebulaGlassCard(
+                          return RepaintBoundary(
+                            child: NebulaGlassCard(
                             onTap: () {
                               Navigator.push(
                                 context,
@@ -365,7 +368,8 @@ class _MyListingsScreenState extends ConsumerState<MyListingsScreen> {
                                 ),
                               ],
                             ),
-                          );
+                          ),
+                        );
                         },
                       ),
                     );

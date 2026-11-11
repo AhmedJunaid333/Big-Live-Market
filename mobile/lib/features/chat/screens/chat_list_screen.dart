@@ -65,6 +65,8 @@ class ChatListScreen extends StatelessWidget {
               // Chat Thread List
               Expanded(
                 child: ListView.separated(
+                  physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+                  cacheExtent: 600,
                   padding: const EdgeInsets.fromLTRB(
                     AppTheme.gutter,
                     8,
@@ -77,7 +79,8 @@ class ChatListScreen extends StatelessWidget {
                     final chat = _threads[index];
                     final unread = (chat['unread'] ?? 0) as int;
 
-                    return NebulaGlassCard(
+                    return RepaintBoundary(
+                      child: NebulaGlassCard(
                       padding: const EdgeInsets.all(16),
                       borderRadius: AppTheme.radius2Xl,
                       onTap: () {
@@ -159,7 +162,8 @@ class ChatListScreen extends StatelessWidget {
                           ),
                         ],
                       ),
-                    );
+                    ),
+                  );
                   },
                 ),
               ),

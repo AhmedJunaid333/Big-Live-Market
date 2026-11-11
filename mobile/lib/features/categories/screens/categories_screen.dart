@@ -158,6 +158,8 @@ class CategoriesScreen extends ConsumerWidget {
               // 2-Up Glass Category Grid
               Expanded(
                 child: GridView.builder(
+                  physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+                  cacheExtent: 600,
                   padding: const EdgeInsets.fromLTRB(
                     AppTheme.gutter,
                     8,
@@ -175,21 +177,22 @@ class CategoriesScreen extends ConsumerWidget {
                     final cat = categories[index];
                     final color = cat['color'] as Color;
 
-                    return NebulaGlassCard(
-                      borderRadius: AppTheme.radius2Xl,
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => CategoryListingsScreen(
-                              categoryId: (cat['id'] ?? 1) as int,
-                              categoryName: cat['name'] as String,
-                              icon: cat['icon'] as IconData,
-                              accentColor: color,
+                    return RepaintBoundary(
+                      child: NebulaGlassCard(
+                        borderRadius: AppTheme.radius2Xl,
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => CategoryListingsScreen(
+                                categoryId: (cat['id'] ?? 1) as int,
+                                categoryName: cat['name'] as String,
+                                icon: cat['icon'] as IconData,
+                                accentColor: color,
+                              ),
                             ),
-                          ),
-                        );
-                      },
+                          );
+                        },
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -225,7 +228,8 @@ class CategoriesScreen extends ConsumerWidget {
                           ),
                         ],
                       ),
-                    );
+                    ),
+                  );
                   },
                 ),
               ),

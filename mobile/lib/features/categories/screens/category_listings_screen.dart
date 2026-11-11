@@ -235,6 +235,8 @@ class _CategoryListingsScreenState extends ConsumerState<CategoryListingsScreen>
                         ref.invalidate(categoryListingsProvider(widget.categoryId));
                       },
                       child: ListView.separated(
+                        physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+                        cacheExtent: 600,
                         padding: const EdgeInsets.fromLTRB(
                           AppTheme.gutter,
                           12,
@@ -252,17 +254,18 @@ class _CategoryListingsScreenState extends ConsumerState<CategoryListingsScreen>
                           final condition = item['condition_code']?.toString() ?? 'used';
                           final isNew = condition.toLowerCase() == 'new';
 
-                          return NebulaGlassCard(
-                            padding: const EdgeInsets.all(16),
-                            borderRadius: AppTheme.radius2Xl,
-                            onTap: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => ListingDetailScreen(listing: item),
-                                ),
-                              );
-                            },
-                            child: Row(
+                          return RepaintBoundary(
+                            child: NebulaGlassCard(
+                              padding: const EdgeInsets.all(16),
+                              borderRadius: AppTheme.radius2Xl,
+                              onTap: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) => ListingDetailScreen(listing: item),
+                                  ),
+                                );
+                              },
+                              child: Row(
                               children: [
                                 // Thumbnail
                                 Container(
@@ -352,8 +355,9 @@ class _CategoryListingsScreenState extends ConsumerState<CategoryListingsScreen>
                                 ),
                               ],
                             ),
-                          );
-                        },
+                          ),
+                        );
+                      },
                       ),
                     );
                   },

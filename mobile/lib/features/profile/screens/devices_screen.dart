@@ -135,6 +135,8 @@ class DevicesScreen extends ConsumerWidget {
                     }
 
                     return ListView.separated(
+                      physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+                      cacheExtent: 600,
                       padding: const EdgeInsets.all(AppTheme.gutter),
                       itemCount: devices.length,
                       separatorBuilder: (_, __) => const SizedBox(height: 12),
@@ -146,7 +148,8 @@ class DevicesScreen extends ConsumerWidget {
                         final isRevoked = d['revoked_at'] != null;
                         final lastSeen = d['last_seen_at']?.toString() ?? 'Recently';
 
-                        return NebulaGlassCard(
+                        return RepaintBoundary(
+                          child: NebulaGlassCard(
                           child: Row(
                             children: [
                               TintedIconBubble(
@@ -199,7 +202,8 @@ class DevicesScreen extends ConsumerWidget {
                                 ),
                             ],
                           ),
-                        );
+                        ),
+                      );
                       },
                     );
                   },

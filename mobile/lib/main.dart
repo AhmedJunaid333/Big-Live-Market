@@ -459,6 +459,8 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
                         ref.invalidate(listingsFeedProvider);
                       },
                       child: ListView.separated(
+                        physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+                        cacheExtent: 600,
                         padding: const EdgeInsets.fromLTRB(
                           AppTheme.gutter,
                           12,
@@ -476,120 +478,122 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
                           final condition = item['condition_code']?.toString() ?? 'used';
                           final isNew = condition.toLowerCase() == 'new';
 
-                          return NebulaGlassCard(
-                            padding: const EdgeInsets.all(16),
-                            borderRadius: AppTheme.radius2Xl,
-                            onTap: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => ListingDetailScreen(listing: item),
-                                ),
-                              );
-                            },
-                            child: Row(
-                              children: [
-                                // Thumbnail with neon status badge
-                                Container(
-                                  width: 88,
-                                  height: 88,
-                                  decoration: BoxDecoration(
-                                    color: AppTheme.backgroundMid,
-                                    borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                                    border: Border.all(color: AppTheme.borderHairline),
+                          return RepaintBoundary(
+                            child: NebulaGlassCard(
+                              padding: const EdgeInsets.all(16),
+                              borderRadius: AppTheme.radius2Xl,
+                              onTap: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) => ListingDetailScreen(listing: item),
                                   ),
-                                  child: Stack(
-                                    alignment: Alignment.center,
-                                    children: [
-                                      Icon(
-                                        Icons.photo_size_select_actual_rounded,
-                                        color: AppTheme.primaryLavender.withValues(alpha: 0.6),
-                                        size: 34,
-                                      ),
-                                      Positioned(
-                                        bottom: 6,
-                                        left: 6,
-                                        child: NebulaBadgePill(
-                                          label: condition,
-                                          color: isNew ? AppTheme.accentMint : AppTheme.accentAmber,
+                                );
+                              },
+                              child: Row(
+                                children: [
+                                  // Thumbnail with neon status badge
+                                  Container(
+                                    width: 88,
+                                    height: 88,
+                                    decoration: BoxDecoration(
+                                      color: AppTheme.backgroundMid,
+                                      borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                                      border: Border.all(color: AppTheme.borderHairline),
+                                    ),
+                                    child: Stack(
+                                      alignment: Alignment.center,
+                                      children: [
+                                        Icon(
+                                          Icons.photo_size_select_actual_rounded,
+                                          color: AppTheme.primaryLavender.withValues(alpha: 0.6),
+                                          size: 34,
                                         ),
-                                      ),
-                                    ],
+                                        Positioned(
+                                          bottom: 6,
+                                          left: 6,
+                                          child: NebulaBadgePill(
+                                            label: condition,
+                                            color: isNew ? AppTheme.accentMint : AppTheme.accentAmber,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(width: 16),
+                                  const SizedBox(width: 16),
 
-                                // Listing Info
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        item['title']?.toString() ?? 'Untitled',
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: AppTheme.bodyMd.copyWith(
-                                          fontWeight: FontWeight.w700,
-                                          color: AppTheme.onSurface,
+                                  // Listing Info
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          item['title']?.toString() ?? 'Untitled',
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: AppTheme.bodyMd.copyWith(
+                                            fontWeight: FontWeight.w700,
+                                            color: AppTheme.onSurface,
+                                          ),
                                         ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Row(
-                                        children: [
-                                          const Icon(
-                                            Icons.location_on_rounded,
-                                            size: 13,
-                                            color: AppTheme.onSurfaceMuted,
-                                          ),
-                                          const SizedBox(width: 4),
-                                          Expanded(
-                                            child: Text(
-                                              location,
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: AppTheme.bodySm.copyWith(
-                                                color: AppTheme.onSurfaceVariant,
-                                              ),
+                                        const SizedBox(height: 4),
+                                        Row(
+                                          children: [
+                                            const Icon(
+                                              Icons.location_on_rounded,
+                                              size: 13,
+                                              color: AppTheme.onSurfaceMuted,
                                             ),
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        formattedPrice,
-                                        style: AppTheme.numeralLg.copyWith(
-                                          color: AppTheme.primaryLavender,
-                                          shadows: const [
-                                            Shadow(
-                                              color: Color(0x66D8B4FE),
-                                              blurRadius: 8,
+                                            const SizedBox(width: 4),
+                                            Expanded(
+                                              child: Text(
+                                                location,
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: AppTheme.bodySm.copyWith(
+                                                  color: AppTheme.onSurfaceVariant,
+                                                ),
+                                              ),
                                             ),
                                           ],
                                         ),
-                                      ),
-                                    ],
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          formattedPrice,
+                                          style: AppTheme.numeralLg.copyWith(
+                                            color: AppTheme.primaryLavender,
+                                            shadows: const [
+                                              Shadow(
+                                                color: Color(0x66D8B4FE),
+                                                blurRadius: 8,
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                                IconButton(
-                                  icon: Icon(
-                                    ref.watch(favoritesProvider).contains((item['id'] as num?)?.toInt())
-                                        ? Icons.favorite_rounded
-                                        : Icons.favorite_border_rounded,
-                                    color: ref.watch(favoritesProvider).contains((item['id'] as num?)?.toInt())
-                                        ? AppTheme.accentPink
-                                        : AppTheme.onSurfaceMuted,
+                                  IconButton(
+                                    icon: Icon(
+                                      ref.watch(favoritesProvider).contains((item['id'] as num?)?.toInt())
+                                          ? Icons.favorite_rounded
+                                          : Icons.favorite_border_rounded,
+                                      color: ref.watch(favoritesProvider).contains((item['id'] as num?)?.toInt())
+                                          ? AppTheme.accentPink
+                                          : AppTheme.onSurfaceMuted,
+                                      size: 20,
+                                    ),
+                                    onPressed: () {
+                                      final id = (item['id'] as num?)?.toInt() ?? 0;
+                                      ref.read(favoritesProvider.notifier).toggleFavorite(id);
+                                    },
+                                  ),
+                                  const Icon(
+                                    Icons.chevron_right_rounded,
+                                    color: AppTheme.onSurfaceMuted,
                                     size: 20,
                                   ),
-                                  onPressed: () {
-                                    final id = (item['id'] as num?)?.toInt() ?? 0;
-                                    ref.read(favoritesProvider.notifier).toggleFavorite(id);
-                                  },
-                                ),
-                                const Icon(
-                                  Icons.chevron_right_rounded,
-                                  color: AppTheme.onSurfaceMuted,
-                                  size: 20,
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           );
                         },

@@ -103,12 +103,15 @@ class FavoritesScreen extends ConsumerWidget {
                           if (savedListings.isEmpty) {
                             // If listings not yet loaded or cached, show ids placeholder
                             return ListView.separated(
+                              physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+                              cacheExtent: 600,
                               padding: const EdgeInsets.all(AppTheme.gutter),
                               itemCount: favorites.length,
                               separatorBuilder: (_, __) => const SizedBox(height: 12),
                               itemBuilder: (ctx, index) {
                                 final id = favorites.elementAt(index);
-                                return NebulaGlassCard(
+                                return RepaintBoundary(
+                                  child: NebulaGlassCard(
                                   onTap: () {
                                     Navigator.push(
                                       context,
@@ -143,12 +146,15 @@ class FavoritesScreen extends ConsumerWidget {
                                       ),
                                     ],
                                   ),
-                                );
+                                ),
+                              );
                               },
                             );
                           }
 
                           return ListView.separated(
+                            physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+                            cacheExtent: 600,
                             padding: const EdgeInsets.all(AppTheme.gutter),
                             itemCount: savedListings.length,
                             separatorBuilder: (_, __) => const SizedBox(height: 12),
@@ -161,7 +167,8 @@ class FavoritesScreen extends ConsumerWidget {
                               final location = item['location_label']?.toString() ?? 'Pakistan';
                               final condition = item['condition_code']?.toString() ?? 'used';
 
-                              return NebulaGlassCard(
+                              return RepaintBoundary(
+                                child: NebulaGlassCard(
                                 onTap: () {
                                   Navigator.push(
                                     context,
@@ -231,7 +238,8 @@ class FavoritesScreen extends ConsumerWidget {
                                     ),
                                   ],
                                 ),
-                              );
+                              ),
+                            );
                             },
                           );
                         },
