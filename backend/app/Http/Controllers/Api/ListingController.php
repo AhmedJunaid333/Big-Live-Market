@@ -190,6 +190,15 @@ class ListingController extends Controller
         return $this->successResponse($listing->fresh('attributeValues.attribute'), 'Attributes saved successfully');
     }
 
+    public function destroy(Request $request, Listing $listing): JsonResponse
+    {
+        $this->authorizeOwner($request->user(), $listing);
+
+        $listing->delete();
+
+        return $this->successResponse(null, 'Listing deleted successfully');
+    }
+
     protected function authorizeOwner($user, Listing $listing): void
     {
         if ($listing->seller_id !== $user->id) {

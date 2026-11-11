@@ -2,11 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/theme/app_theme.dart';
 import 'core/network/api_client.dart';
+import 'core/localization/app_strings.dart';
 import 'core/widgets/nebula_glass_widgets.dart';
 import 'features/categories/screens/categories_screen.dart';
 import 'features/chat/screens/chat_list_screen.dart';
+import 'features/listings/providers/favorites_provider.dart';
+import 'features/listings/providers/filter_provider.dart';
+import 'features/listings/screens/favorites_screen.dart';
 import 'features/listings/screens/listing_detail_screen.dart';
 import 'features/listings/screens/post_ad_screen.dart';
+import 'features/listings/widgets/filter_bottom_sheet.dart';
 import 'features/profile/screens/profile_screen.dart';
 import 'features/splash/screens/splash_screen.dart';
 
@@ -28,7 +33,10 @@ final listingsFeedProvider = FutureProvider<List<dynamic>>((ref) async {
   final client = ref.watch(apiClientProvider);
   final query = ref.watch(searchQueryProvider);
   final activeCategory = ref.watch(activeCategoryFilterProvider);
+  final filter = ref.watch(filterProvider);
   final categoryId = categoryIdMap[activeCategory];
+
+  List<dynamic> items = [];
 
   try {
     String endpoint;
@@ -45,7 +53,7 @@ final listingsFeedProvider = FutureProvider<List<dynamic>>((ref) async {
 
     final response = await client.dio.get(endpoint);
     final data = response.data['data'] as List<dynamic>?;
-    return data ?? [];
+    items = List<dynamic>.from(data ?? []);
   } catch (e) {
     // Return sample offline listings filtered by category if applicable
     final allOffline = [
@@ -85,10 +93,62 @@ final listingsFeedProvider = FutureProvider<List<dynamic>>((ref) async {
     ];
 
     if (categoryId != null) {
-      return allOffline.where((item) => item['category_id'] == categoryId).toList();
+      items = allOffline.where((item) => item['category_id'] == categoryId).toList();
+    } else {
+      items = List<dynamic>.from(allOffline);
     }
-    return allOffline;
   }
+
+  // Apply Condition Filter
+  if (filter.condition != null) {
+    items = items.where((item) {
+      if (item is! Map) return false;
+      return item['condition_code']?.toString().toLowerCase() == filter.condition?.toLowerCase();
+    }).toList();
+  }
+
+  // Apply City Filter
+  if (filter.city != null) {
+    items = items.where((item) {
+      if (item is! Map) return false;
+      final loc = item['location_label']?.toString().toLowerCase() ?? '';
+      return loc.contains(filter.city!.toLowerCase());
+    }).toList();
+  }
+
+  // Apply Price Filters
+  if (filter.minPrice != null) {
+    items = items.where((item) {
+      if (item is! Map) return false;
+      final price = ((item['price_minor'] ?? 0) as num) / 100;
+      return price >= filter.minPrice!;
+    }).toList();
+  }
+
+  if (filter.maxPrice != null) {
+    items = items.where((item) {
+      if (item is! Map) return false;
+      final price = ((item['price_minor'] ?? 0) as num) / 100;
+      return price <= filter.maxPrice!;
+    }).toList();
+  }
+
+  // Apply Sorting
+  if (filter.sortBy == 'price_asc') {
+    items.sort((a, b) {
+      final pa = (a is Map ? (a['price_minor'] ?? 0) as num : 0);
+      final pb = (b is Map ? (b['price_minor'] ?? 0) as num : 0);
+      return pa.compareTo(pb);
+    });
+  } else if (filter.sortBy == 'price_desc') {
+    items.sort((a, b) {
+      final pa = (a is Map ? (a['price_minor'] ?? 0) as num : 0);
+      final pb = (b is Map ? (b['price_minor'] ?? 0) as num : 0);
+      return pb.compareTo(pa);
+    });
+  }
+
+  return items;
 });
 
 void main() {
@@ -96,13 +156,14 @@ void main() {
   runApp(const ProviderScope(child: BigLiveApp()));
 }
 
-class BigLiveApp extends StatelessWidget {
+class BigLiveApp extends ConsumerWidget {
   const BigLiveApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(languageProvider);
     return MaterialApp(
-      title: 'Big Live Marketplace',
+      title: AppStrings.appTitle,
       theme: AppTheme.darkTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.dark,
@@ -227,8 +288,30 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
                     Row(
                       children: [
                         NebulaGlassIconButton(
+                          icon: Icons.filter_list_rounded,
+                          color: ref.watch(filterProvider).isActive ? AppTheme.accentCyan : AppTheme.onSurfaceVariant,
+                          tooltip: 'Filters',
+                          onPressed: () {
+                            FilterBottomSheet.show(context);
+                          },
+                        ),
+                        const SizedBox(width: 8),
+                        NebulaGlassIconButton(
+                          icon: Icons.favorite_border_rounded,
+                          color: AppTheme.accentPink,
+                          tooltip: 'Saved Favorites',
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const FavoritesScreen()),
+                            );
+                          },
+                        ),
+                        const SizedBox(width: 8),
+                        NebulaGlassIconButton(
                           icon: Icons.refresh_rounded,
                           color: AppTheme.primaryLavender,
+                          tooltip: 'Refresh',
                           onPressed: () {
                             ref.invalidate(listingsFeedProvider);
                           },
@@ -486,10 +569,25 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
                                     ],
                                   ),
                                 ),
+                                IconButton(
+                                  icon: Icon(
+                                    ref.watch(favoritesProvider).contains((item['id'] as num?)?.toInt())
+                                        ? Icons.favorite_rounded
+                                        : Icons.favorite_border_rounded,
+                                    color: ref.watch(favoritesProvider).contains((item['id'] as num?)?.toInt())
+                                        ? AppTheme.accentPink
+                                        : AppTheme.onSurfaceMuted,
+                                    size: 20,
+                                  ),
+                                  onPressed: () {
+                                    final id = (item['id'] as num?)?.toInt() ?? 0;
+                                    ref.read(favoritesProvider.notifier).toggleFavorite(id);
+                                  },
+                                ),
                                 const Icon(
                                   Icons.chevron_right_rounded,
                                   color: AppTheme.onSurfaceMuted,
-                                  size: 22,
+                                  size: 20,
                                 ),
                               ],
                             ),

@@ -1,5 +1,8 @@
+import 'dart:io';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/nebula_glass_widgets.dart';
 import '../../../main.dart';
@@ -22,6 +25,7 @@ class _PostAdScreenState extends ConsumerState<PostAdScreen> {
   final int _selectedCity = 1;
   String _selectedCondition = 'used';
   bool _isSubmitting = false;
+  final List<XFile> _selectedImages = [];
 
   final List<Map<String, dynamic>> _categories = const [
     {'id': 1, 'name': 'Motors'},
@@ -40,6 +44,27 @@ class _PostAdScreenState extends ConsumerState<PostAdScreen> {
     super.dispose();
   }
 
+  Future<void> _pickImages() async {
+    try {
+      final picker = ImagePicker();
+      final picked = await picker.pickMultiImage(imageQuality: 85);
+      if (picked.isNotEmpty) {
+        setState(() {
+          _selectedImages.addAll(picked);
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: AppTheme.backgroundMid,
+            content: Text('Could not open gallery: $e'),
+          ),
+        );
+      }
+    }
+  }
+
   Future<void> _submitAd() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -49,7 +74,7 @@ class _PostAdScreenState extends ConsumerState<PostAdScreen> {
       final client = ref.read(apiClientProvider);
       final price = double.tryParse(_priceController.text) ?? 50000;
 
-      await client.dio.post(
+      final res = await client.dio.post(
         '/listings',
         data: {
           'title': _titleController.text.trim(),
@@ -62,6 +87,18 @@ class _PostAdScreenState extends ConsumerState<PostAdScreen> {
           'description': _descController.text.trim(),
         },
       );
+
+      final listingId = res.data['data']?['id'];
+      if (listingId != null && _selectedImages.isNotEmpty) {
+        for (final img in _selectedImages) {
+          try {
+            final formData = FormData.fromMap({
+              'image': await MultipartFile.fromFile(img.path, filename: img.name),
+            });
+            await client.dio.post('/listings/$listingId/media', data: formData);
+          } catch (_) {}
+        }
+      }
 
       ref.invalidate(listingsFeedProvider);
 
@@ -95,6 +132,7 @@ class _PostAdScreenState extends ConsumerState<PostAdScreen> {
                   _titleController.clear();
                   _priceController.clear();
                   _descController.clear();
+                  setState(() => _selectedImages.clear());
                 },
                 child: Text(
                   'DONE',
@@ -167,49 +205,107 @@ class _PostAdScreenState extends ConsumerState<PostAdScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        // Photo Upload Slot (Dashed Glass Box)
-                        GestureDetector(
-                          onTap: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                backgroundColor: AppTheme.backgroundMid,
-                                content: Text(
-                                  'Photo selector opened',
-                                  style: AppTheme.bodyMd.copyWith(color: AppTheme.onSurface),
+                        // Photo Upload / Preview Slot
+                        if (_selectedImages.isEmpty)
+                          GestureDetector(
+                            onTap: _pickImages,
+                            child: Container(
+                              height: 120,
+                              decoration: BoxDecoration(
+                                color: AppTheme.surfaceGlass,
+                                borderRadius: BorderRadius.circular(AppTheme.radius2Xl),
+                                border: Border.all(
+                                  color: AppTheme.borderHairline,
+                                  width: 1.5,
                                 ),
                               ),
-                            );
-                          },
-                          child: Container(
-                            height: 120,
-                            decoration: BoxDecoration(
-                              color: AppTheme.surfaceGlass,
-                              borderRadius: BorderRadius.circular(AppTheme.radius2Xl),
-                              border: Border.all(
-                                color: AppTheme.borderHairline,
-                                width: 1.5,
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const TintedIconBubble(
+                                    icon: Icons.add_a_photo_rounded,
+                                    accentColor: AppTheme.primaryLavender,
+                                    size: 48,
+                                    iconSize: 24,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'ADD PHOTOS & MEDIA',
+                                    style: AppTheme.labelUppercase.copyWith(
+                                      color: AppTheme.primaryLavender,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                TintedIconBubble(
-                                  icon: Icons.add_a_photo_rounded,
-                                  accentColor: AppTheme.primaryLavender,
-                                  size: 48,
-                                  iconSize: 24,
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  'ADD PHOTOS & MEDIA',
-                                  style: AppTheme.labelUppercase.copyWith(
-                                    color: AppTheme.primaryLavender,
-                                  ),
-                                ),
-                              ],
+                          )
+                        else
+                          SizedBox(
+                            height: 110,
+                            child: ListView.separated(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: _selectedImages.length + 1,
+                              separatorBuilder: (_, __) => const SizedBox(width: 10),
+                              itemBuilder: (ctx, index) {
+                                if (index == _selectedImages.length) {
+                                  // Add more button
+                                  return GestureDetector(
+                                    onTap: _pickImages,
+                                    child: Container(
+                                      width: 90,
+                                      decoration: BoxDecoration(
+                                        color: AppTheme.surfaceGlass,
+                                        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+                                        border: Border.all(color: AppTheme.borderHairline),
+                                      ),
+                                      child: const Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Icon(Icons.add_photo_alternate_rounded, color: AppTheme.primaryLavender, size: 26),
+                                          SizedBox(height: 4),
+                                          Text('Add More', style: TextStyle(color: AppTheme.primaryLavender, fontSize: 11)),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                }
+
+                                final img = _selectedImages[index];
+                                return Stack(
+                                  children: [
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+                                      child: Image.file(
+                                        File(img.path),
+                                        width: 100,
+                                        height: 110,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
+                                    Positioned(
+                                      top: 4,
+                                      right: 4,
+                                      child: GestureDetector(
+                                        onTap: () => setState(() => _selectedImages.removeAt(index)),
+                                        child: Container(
+                                          padding: const EdgeInsets.all(4),
+                                          decoration: BoxDecoration(
+                                            color: AppTheme.backgroundDark.withValues(alpha: 0.8),
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: const Icon(
+                                            Icons.close_rounded,
+                                            size: 14,
+                                            color: AppTheme.accentPink,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              },
                             ),
                           ),
-                        ),
 
                         const SizedBox(height: AppTheme.sectionGap),
 

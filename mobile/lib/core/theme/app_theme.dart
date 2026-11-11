@@ -31,6 +31,11 @@ class AppTheme {
   static const Color accentIndigo = Color(0xFF818CF8);
   static const Color accentRose = Color(0xFFF87171);
   static const Color accentAmber = Color(0xFFFCD34D);
+  static const Color accentCyan = Color(0xFF67E8F9);
+
+  // Backward Compatibility & Semantic Aliases
+  static const Color backgroundDark = background;
+  static const Color glassSurface = surfaceGlass;
 
   // Glow Orbs & Atmosphere Blooms
   static const Color glowPurple = Color(0x33A855F7); // rgba(168,85,247,0.20)
@@ -197,6 +202,21 @@ class AppTheme {
       Color(0xFFC084FC),
     ],
   );
+
+  static const LinearGradient cardGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [
+      Color(0x1AFFFFFF),
+      Color(0x05FFFFFF),
+    ],
+  );
+
+  static TextStyle get priceSm => GoogleFonts.manrope(
+        fontSize: 14,
+        fontWeight: FontWeight.w700,
+        color: primaryLavender,
+      );
 
   // Shadows
   static const List<BoxShadow> glassShadow = [

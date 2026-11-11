@@ -161,15 +161,17 @@ class NebulaButtonPrimary extends StatelessWidget {
   final EdgeInsetsGeometry? padding;
   final TextStyle? textStyle;
 
-  const NebulaButtonPrimary({
+  NebulaButtonPrimary({
     super.key,
     required this.label,
     required this.onPressed,
-    this.icon,
+    dynamic icon,
     this.isLoading = false,
     this.padding,
     this.textStyle,
-  });
+  }) : icon = icon is IconData
+            ? Icon(icon, size: 18, color: AppTheme.onPrimary)
+            : (icon as Widget?);
 
   @override
   Widget build(BuildContext context) {
@@ -288,6 +290,7 @@ class NebulaGlassIconButton extends StatelessWidget {
   final double size;
   final double iconSize;
   final Color? color;
+  final String? tooltip;
 
   const NebulaGlassIconButton({
     super.key,
@@ -296,6 +299,7 @@ class NebulaGlassIconButton extends StatelessWidget {
     this.size = 40.0,
     this.iconSize = 22.0,
     this.color,
+    this.tooltip,
   });
 
   @override
@@ -334,10 +338,11 @@ class TintedIconBubble extends StatelessWidget {
   const TintedIconBubble({
     super.key,
     required this.icon,
-    this.accentColor = AppTheme.primaryLavender,
+    Color? tint,
+    Color? accentColor,
     this.size = 40.0,
     this.iconSize = 20.0,
-  });
+  }) : accentColor = tint ?? accentColor ?? AppTheme.primaryLavender;
 
   @override
   Widget build(BuildContext context) {
@@ -362,6 +367,8 @@ class TintedIconBubble extends StatelessWidget {
   }
 }
 
+enum NebulaBadgeTone { mint, lavender, cyan, pink }
+
 /// Status Badge Pill: Mint status indicator with uppercase tracking
 class NebulaBadgePill extends StatelessWidget {
   final String label;
@@ -369,9 +376,19 @@ class NebulaBadgePill extends StatelessWidget {
 
   const NebulaBadgePill({
     super.key,
-    required this.label,
-    this.color = AppTheme.secondaryMint,
-  });
+    String? label,
+    String? text,
+    Color? color,
+    NebulaBadgeTone? tone,
+  })  : label = text ?? label ?? '',
+        color = color ??
+            (tone == NebulaBadgeTone.cyan
+                ? AppTheme.accentCyan
+                : tone == NebulaBadgeTone.lavender
+                    ? AppTheme.primaryLavender
+                    : tone == NebulaBadgeTone.pink
+                        ? AppTheme.accentPink
+                        : AppTheme.secondaryMint);
 
   @override
   Widget build(BuildContext context) {

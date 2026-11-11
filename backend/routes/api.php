@@ -140,6 +140,7 @@ Route::prefix('v1')->group(function () {
 
         // Listings creation and lifecycle
         Route::post('/listings', [ListingController::class, 'store']);
+        Route::delete('/listings/{listing}', [ListingController::class, 'destroy']);
         Route::get('/me/listings', [ListingController::class, 'myListings']);
         Route::post('/listings/{listing}/submit', [ListingController::class, 'submit']);
         Route::post('/listings/{listing}/pause', [ListingController::class, 'pause']);

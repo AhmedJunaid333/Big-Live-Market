@@ -102,6 +102,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     required String email,
     required String password,
     String? phoneE164,
+    String? role,
   }) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
 
@@ -111,6 +112,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
         'email': email,
         'password': password,
         'phone_e164': phoneE164,
+        'role': role ?? 'buyer',
         'device_name': 'Flutter Mobile App',
       });
 

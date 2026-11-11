@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/nebula_glass_widgets.dart';
 import '../providers/auth_provider.dart';
+import 'register_screen.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -267,6 +268,32 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             ),
                           ),
                         ],
+                      ),
+                      const SizedBox(height: 18),
+                      Center(
+                        child: TextButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const RegisterScreen()),
+                            );
+                          },
+                          child: RichText(
+                            text: TextSpan(
+                              text: "Don't have an account? ",
+                              style: AppTheme.bodyMd.copyWith(color: AppTheme.onSurfaceVariant),
+                              children: [
+                                TextSpan(
+                                  text: 'Sign Up',
+                                  style: AppTheme.bodyMd.copyWith(
+                                    color: AppTheme.accentCyan,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
                       ),
                     ],
                   ),

@@ -114,17 +114,19 @@ void main() {
 
     testWidgets('ListingDetailScreen renders glass cards and actions', (tester) async {
       await tester.pumpWidget(
-        MaterialApp(
-          home: ListingDetailScreen(
-            listing: {
-              'title': 'Test Luxury Sedan',
-              'price_minor': 500000000,
-              'currency': 'PKR',
-              'condition_code': 'new',
-              'location_label': 'Lahore, Pakistan',
-              'description': 'Pristine showroom condition.',
-              'seller': {'name': 'Shahid Khan', 'phone_e164': '+923001112233'}
-            },
+        ProviderScope(
+          child: MaterialApp(
+            home: ListingDetailScreen(
+              listing: {
+                'title': 'Test Luxury Sedan',
+                'price_minor': 500000000,
+                'currency': 'PKR',
+                'condition_code': 'new',
+                'location_label': 'Lahore, Pakistan',
+                'description': 'Pristine showroom condition.',
+                'seller': {'name': 'Shahid Khan', 'phone_e164': '+923001112233'}
+              },
+            ),
           ),
         ),
       );

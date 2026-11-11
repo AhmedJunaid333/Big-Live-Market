@@ -1,15 +1,133 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/nebula_glass_widgets.dart';
+import '../../../main.dart';
+import '../../chat/screens/chat_detail_screen.dart';
+import '../providers/favorites_provider.dart';
 
-class ListingDetailScreen extends StatelessWidget {
-  final Map<String, dynamic> listing;
+class ListingDetailScreen extends ConsumerStatefulWidget {
+  final Map<String, dynamic>? listing;
+  final int? listingId;
 
-  const ListingDetailScreen({super.key, required this.listing});
+  const ListingDetailScreen({
+    super.key,
+    this.listing,
+    this.listingId,
+  }) : assert(listing != null || listingId != null, 'Either listing or listingId must be provided');
+
+  @override
+  ConsumerState<ListingDetailScreen> createState() => _ListingDetailScreenState();
+}
+
+class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
+  Map<String, dynamic>? _fetchedListing;
+  bool _isLoading = false;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.listing == null && widget.listingId != null) {
+      _loadListingDetails();
+    }
+  }
+
+  Future<void> _loadListingDetails() async {
+    setState(() => _isLoading = true);
+    try {
+      final client = ref.read(apiClientProvider);
+      final res = await client.dio.get('/listings/${widget.listingId}');
+      final data = res.data['data'];
+      if (data is Map<String, dynamic>) {
+        setState(() => _fetchedListing = data);
+      }
+    } catch (e) {
+      setState(() => _errorMessage = e.toString());
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  Map<String, dynamic> get _activeListing => widget.listing ?? _fetchedListing ?? {};
+
+  Future<void> _callSeller(String phone) async {
+    final cleanPhone = phone.replaceAll(RegExp(r'[^0-9+]'), '');
+    final uri = Uri.parse('tel:$cleanPhone');
+    try {
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        await launchUrl(uri);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: AppTheme.backgroundMid,
+            content: Text('Could not open phone dialer: $e'),
+          ),
+        );
+      }
+    }
+  }
+
+  void _shareListing(String title, String price, int id) {
+    // ignore: deprecated_member_use
+    Share.share(
+      'Check out "$title" for $price on Big Live Marketplace:\nhttps://biglive.pk/listings/$id',
+      subject: title,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return Scaffold(
+        backgroundColor: AppTheme.backgroundDark,
+        body: const NebulaAtmosphericBackground(
+          child: Center(
+            child: CircularProgressIndicator(color: AppTheme.primaryLavender),
+          ),
+        ),
+      );
+    }
+
+    if (_errorMessage != null && widget.listing == null) {
+      return Scaffold(
+        backgroundColor: AppTheme.backgroundDark,
+        body: NebulaAtmosphericBackground(
+          child: SafeArea(
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(AppTheme.gutter),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    NebulaGlassIconButton(
+                      icon: Icons.arrow_back_rounded,
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                    const SizedBox(height: 16),
+                    Text('Failed to load listing', style: AppTheme.headlineMd),
+                    const SizedBox(height: 8),
+                    Text(_errorMessage!, style: AppTheme.bodySm.copyWith(color: AppTheme.onSurfaceVariant)),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    final listing = _activeListing;
+    final id = (listing['id'] as num?)?.toInt() ?? widget.listingId ?? 0;
     final title = listing['title']?.toString() ?? 'Advertisement';
     final description = listing['description']?.toString() ?? 'No description provided.';
     final priceMinor = (listing['price_minor'] ?? 0) as num;
@@ -20,10 +138,12 @@ class ListingDetailScreen extends StatelessWidget {
     final location = listing['location_label']?.toString() ?? 'Pakistan';
     final seller = listing['seller'] as Map<String, dynamic>?;
     final sellerName = seller?['name']?.toString() ?? 'Verified Member';
-    final sellerPhone = seller?['phone_e164']?.toString() ?? '+92 300 1234567';
+    final sellerPhone = seller?['phone_e164']?.toString() ?? '+923001234567';
+
+    final isFav = ref.watch(favoritesProvider).contains(id);
 
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: AppTheme.backgroundDark,
       body: NebulaAtmosphericBackground(
         child: Stack(
           children: [
@@ -54,29 +174,23 @@ class ListingDetailScreen extends StatelessWidget {
                     NebulaGlassIconButton(
                       icon: Icons.share_rounded,
                       color: AppTheme.onSurfaceVariant,
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            backgroundColor: AppTheme.backgroundMid,
-                            content: Text(
-                              'Listing link copied to clipboard!',
-                              style: AppTheme.bodyMd.copyWith(color: AppTheme.onSurface),
-                            ),
-                          ),
-                        );
-                      },
+                      onPressed: () => _shareListing(title, formattedPrice, id),
                     ),
                     const SizedBox(width: 8),
                     NebulaGlassIconButton(
-                      icon: Icons.favorite_border_rounded,
-                      color: AppTheme.accentPink,
+                      icon: isFav ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                      color: isFav ? AppTheme.accentPink : AppTheme.onSurfaceVariant,
                       onPressed: () {
+                        ref.read(favoritesProvider.notifier).toggleFavorite(id);
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             backgroundColor: AppTheme.backgroundMid,
+                            duration: const Duration(seconds: 1),
                             content: Text(
-                              'Saved to Favorites!',
-                              style: AppTheme.bodyMd.copyWith(color: AppTheme.accentPink),
+                              isFav ? 'Removed from saved favorites' : 'Saved to favorites!',
+                              style: AppTheme.bodyMd.copyWith(
+                                color: isFav ? AppTheme.onSurface : AppTheme.accentPink,
+                              ),
                             ),
                           ),
                         );
@@ -100,7 +214,7 @@ class ListingDetailScreen extends StatelessWidget {
                       children: [
                         // Hero Image Container with Glass Overlay
                         Container(
-                          height: 260,
+                          height: 240,
                           decoration: BoxDecoration(
                             color: AppTheme.backgroundMid,
                             borderRadius: BorderRadius.circular(AppTheme.radius2Xl),
@@ -113,11 +227,10 @@ class ListingDetailScreen extends StatelessWidget {
                               Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  TintedIconBubble(
+                                  const TintedIconBubble(
                                     icon: Icons.photo_library_rounded,
-                                    accentColor: AppTheme.primaryLavender,
-                                    size: 64,
-                                    iconSize: 32,
+                                    tint: AppTheme.primaryLavender,
+                                    size: 58,
                                   ),
                                   const SizedBox(height: 12),
                                   Text(
@@ -133,16 +246,16 @@ class ListingDetailScreen extends StatelessWidget {
                                 bottom: 16,
                                 left: 16,
                                 child: NebulaBadgePill(
-                                  label: condition,
-                                  color: isNew ? AppTheme.accentMint : AppTheme.accentAmber,
+                                  text: condition.toUpperCase(),
+                                  tone: isNew ? NebulaBadgeTone.mint : NebulaBadgeTone.pink,
                                 ),
                               ),
-                              Positioned(
+                              const Positioned(
                                 bottom: 16,
                                 right: 16,
                                 child: NebulaBadgePill(
-                                  label: 'ID VERIFIED',
-                                  color: AppTheme.secondaryMint,
+                                  text: 'ID VERIFIED',
+                                  tone: NebulaBadgeTone.mint,
                                 ),
                               ),
                             ],
@@ -165,7 +278,7 @@ class ListingDetailScreen extends StatelessWidget {
                                 formattedPrice,
                                 style: AppTheme.numeralXl.copyWith(
                                   color: AppTheme.primaryLavender,
-                                  fontSize: 32,
+                                  fontSize: 30,
                                   shadows: const [
                                     Shadow(
                                       color: Color(0x66D8B4FE),
@@ -238,9 +351,9 @@ class ListingDetailScreen extends StatelessWidget {
                                   ],
                                 ),
                               ),
-                              NebulaBadgePill(
-                                label: 'PRO',
-                                color: AppTheme.accentPink,
+                              const NebulaBadgePill(
+                                text: 'VERIFIED',
+                                tone: NebulaBadgeTone.cyan,
                               ),
                             ],
                           ),
@@ -296,10 +409,10 @@ class ListingDetailScreen extends StatelessWidget {
                   child: Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: AppTheme.gutter,
-                      vertical: 16,
+                      vertical: 14,
                     ),
                     decoration: BoxDecoration(
-                      color: AppTheme.backgroundMid.withValues(alpha: 0.85),
+                      color: AppTheme.backgroundMid.withValues(alpha: 0.88),
                       border: const Border(
                         top: BorderSide(color: AppTheme.borderHairline, width: 1),
                       ),
@@ -314,14 +427,7 @@ class ListingDetailScreen extends StatelessWidget {
                               label: 'Call',
                               icon: Icons.phone_rounded,
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 14),
-                              onPressed: () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    backgroundColor: AppTheme.backgroundMid,
-                                    content: Text('Calling $sellerPhone...'),
-                                  ),
-                                );
-                              },
+                              onPressed: () => _callSeller(sellerPhone),
                             ),
                           ),
                           const SizedBox(width: 10),
@@ -330,16 +436,16 @@ class ListingDetailScreen extends StatelessWidget {
                             child: NebulaButtonPrimary(
                               label: 'Direct Chat',
                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-                              icon: const Icon(
-                                Icons.chat_bubble_rounded,
-                                size: 18,
-                                color: AppTheme.onPrimary,
-                              ),
+                              icon: Icons.chat_bubble_rounded,
                               onPressed: () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    backgroundColor: AppTheme.backgroundMid,
-                                    content: Text('Starting chat with $sellerName...'),
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => ChatDetailScreen(
+                                      conversationId: id,
+                                      sellerName: sellerName,
+                                      listingTitle: title,
+                                    ),
                                   ),
                                 );
                               },

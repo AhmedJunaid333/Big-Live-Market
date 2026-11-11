@@ -42,8 +42,9 @@ class AuthController extends Controller
             'preferred_currency' => $validated['preferred_currency'] ?? 'PKR',
         ]);
 
-        // Default role: buyer and seller permissions
-        $user->assignRole('buyer');
+        // Role assignment: buyer or seller
+        $role = $validated['role'] ?? 'buyer';
+        $user->assignRole($role);
 
         // Record initial Terms of Service consent
         UserConsent::create([

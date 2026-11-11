@@ -8,14 +8,19 @@ class ChatDetailScreen extends StatefulWidget {
   final String? contactName;
   final String itemTitle;
   final String? initialPrice;
+  final int? conversationId;
 
   const ChatDetailScreen({
     super.key,
     this.userName,
-    this.contactName,
-    required this.itemTitle,
+    String? contactName,
+    String? itemTitle,
+    String? listingTitle,
+    String? sellerName,
     this.initialPrice,
-  });
+    this.conversationId,
+  })  : itemTitle = listingTitle ?? (itemTitle ?? 'Listing'),
+        contactName = sellerName ?? contactName;
 
   String get displayName => userName ?? contactName ?? 'Verified Seller';
 
