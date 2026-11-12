@@ -8,6 +8,7 @@ import '../../auth/screens/login_screen.dart';
 import '../../listings/screens/favorites_screen.dart';
 import '../../listings/screens/my_listings_screen.dart';
 import 'devices_screen.dart';
+import 'paid_ad_promotion_screen.dart';
 import 'verification_screen.dart';
 
 class ProfileScreen extends ConsumerWidget {
@@ -153,6 +154,19 @@ class ProfileScreen extends ConsumerWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(builder: (_) => const FavoritesScreen()),
+                      );
+                    },
+                  ),
+                  const Divider(color: AppTheme.borderHairline),
+                  _buildMenuRow(
+                    icon: Icons.bolt_rounded,
+                    accentColor: AppTheme.accentAmber,
+                    title: 'Promote Advert (پیڈ ایڈ)',
+                    subtitle: 'Pay & feature your listing in top banner',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const PaidAdPromotionScreen()),
                       );
                     },
                   ),
@@ -319,6 +333,19 @@ class ProfileScreen extends ConsumerWidget {
           padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
           child: Column(
             children: [
+              _buildMenuRow(
+                icon: Icons.bolt_rounded,
+                accentColor: AppTheme.accentAmber,
+                title: 'Promote / Feature Ad (پیڈ ایڈ)',
+                subtitle: 'Pay to rank your advert in the top home banner',
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const PaidAdPromotionScreen()),
+                  );
+                },
+              ),
+              const Divider(color: AppTheme.borderHairline),
               _buildMenuRow(
                 icon: Icons.storefront_outlined,
                 accentColor: AppTheme.primaryLavender,

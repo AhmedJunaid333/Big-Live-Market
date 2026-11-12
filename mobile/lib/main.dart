@@ -5,6 +5,7 @@ import 'core/network/api_client.dart';
 import 'core/localization/app_strings.dart';
 import 'core/widgets/nebula_glass_widgets.dart';
 import 'features/categories/screens/categories_screen.dart';
+import 'features/categories/widgets/olx_category_grid.dart';
 import 'features/chat/screens/chat_list_screen.dart';
 import 'features/listings/providers/favorites_provider.dart';
 import 'features/listings/providers/filter_provider.dart';
@@ -270,14 +271,7 @@ class HomeFeedScreen extends ConsumerStatefulWidget {
 
 class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
   final _searchController = TextEditingController();
-
-  final List<String> _quickCategories = const [
-    'All',
-    'Motors',
-    'Mobiles',
-    'Property',
-    'Tech',
-  ];
+  bool _isSearchVisible = false;
 
   @override
   void dispose() {
@@ -288,7 +282,6 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
   @override
   Widget build(BuildContext context) {
     final listingsAsync = ref.watch(listingsFeedProvider);
-    final activeFilter = ref.watch(activeCategoryFilterProvider);
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -298,9 +291,9 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Cosmic Top App Bar (Flat - no fill, no border)
+              // Sleek Cosmic Top App Bar with Search Button beside Radar
               Padding(
-                padding: const EdgeInsets.fromLTRB(AppTheme.gutter, 16, AppTheme.gutter, 12),
+                padding: const EdgeInsets.fromLTRB(AppTheme.gutter, 14, AppTheme.gutter, 8),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -311,16 +304,32 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
                           'NEBULA MARKETPLACE',
                           style: AppTheme.labelUppercase,
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 2),
                         Text(
                           'Big Live',
-                          style: AppTheme.displayLg,
+                          style: AppTheme.displayLg.copyWith(fontSize: 26),
                         ),
                       ],
                     ),
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
+                        // Search Button beside Radar
+                        NebulaGlassIconButton(
+                          icon: _isSearchVisible ? Icons.close_rounded : Icons.search_rounded,
+                          color: _isSearchVisible ? AppTheme.accentPink : AppTheme.primaryLavender,
+                          tooltip: 'Search',
+                          onPressed: () {
+                            setState(() {
+                              _isSearchVisible = !_isSearchVisible;
+                              if (!_isSearchVisible) {
+                                _searchController.clear();
+                                ref.read(searchQueryProvider.notifier).state = '';
+                              }
+                            });
+                          },
+                        ),
+                        const SizedBox(width: 6),
                         NebulaGlassIconButton(
                           icon: Icons.radar_rounded,
                           color: AppTheme.secondaryMint,
@@ -359,98 +368,48 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
                 ),
               ),
 
-              // Glass Search Input Bar
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: AppTheme.gutter, vertical: 8),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(AppTheme.radiusXl),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: AppTheme.surfaceGlass,
-                      borderRadius: BorderRadius.circular(AppTheme.radiusXl),
-                      border: Border.all(color: AppTheme.borderHairline, width: 1),
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
-                    child: TextField(
-                      controller: _searchController,
-                      style: AppTheme.bodyMd.copyWith(color: AppTheme.onSurface),
-                      decoration: InputDecoration(
-                        hintText: 'Search cars, mobiles, luxury villas...',
-                        hintStyle: AppTheme.bodySm.copyWith(color: AppTheme.onSurfaceMuted),
-                        prefixIcon: const Icon(Icons.search_rounded, color: AppTheme.primaryLavender, size: 22),
-                        suffixIcon: _searchController.text.isNotEmpty
-                            ? IconButton(
-                                icon: const Icon(Icons.clear_rounded, color: AppTheme.onSurfaceVariant, size: 18),
-                                onPressed: () {
-                                  _searchController.clear();
-                                  ref.read(searchQueryProvider.notifier).state = '';
-                                },
-                              )
-                            : null,
-                        border: InputBorder.none,
-                        enabledBorder: InputBorder.none,
-                        focusedBorder: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(vertical: 14),
+              // Expandable Search Bar (when user taps search button)
+              if (_isSearchVisible)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: AppTheme.gutter, vertical: 4),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(AppTheme.radiusXl),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: AppTheme.surfaceGlass,
+                        borderRadius: BorderRadius.circular(AppTheme.radiusXl),
+                        border: Border.all(color: AppTheme.primaryLavender.withValues(alpha: 0.4), width: 1),
                       ),
-                      onSubmitted: (query) {
-                        ref.read(searchQueryProvider.notifier).state = query.trim();
-                      },
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 0),
+                      child: TextField(
+                        controller: _searchController,
+                        autofocus: true,
+                        style: AppTheme.bodyMd.copyWith(color: AppTheme.onSurface),
+                        decoration: InputDecoration(
+                          hintText: 'Search cars, mobiles, luxury villas...',
+                          hintStyle: AppTheme.bodySm.copyWith(color: AppTheme.onSurfaceMuted),
+                          prefixIcon: const Icon(Icons.search_rounded, color: AppTheme.primaryLavender, size: 20),
+                          suffixIcon: _searchController.text.isNotEmpty
+                              ? IconButton(
+                                  icon: const Icon(Icons.clear_rounded, color: AppTheme.onSurfaceVariant, size: 16),
+                                  onPressed: () {
+                                    _searchController.clear();
+                                    ref.read(searchQueryProvider.notifier).state = '';
+                                  },
+                                )
+                              : null,
+                          border: InputBorder.none,
+                          contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                        ),
+                        onSubmitted: (query) {
+                          ref.read(searchQueryProvider.notifier).state = query.trim();
+                        },
+                      ),
                     ),
                   ),
                 ),
-              ),
 
-              // Segmented Category Filter Tray
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: AppTheme.gutter, vertical: 8),
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: _quickCategories.map((category) {
-                      final isSelected = activeFilter == category;
-                      return Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: GestureDetector(
-                          onTap: () {
-                            ref.read(activeCategoryFilterProvider.notifier).state = category;
-                          },
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 200),
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                            decoration: BoxDecoration(
-                              color: isSelected
-                                  ? Colors.white.withValues(alpha: 0.10)
-                                  : Colors.transparent,
-                              borderRadius: BorderRadius.circular(AppTheme.radiusSm),
-                              border: Border.all(
-                                color: isSelected ? AppTheme.borderHairline : Colors.transparent,
-                              ),
-                              boxShadow: isSelected
-                                  ? [
-                                      const BoxShadow(
-                                        color: Color(0x1A000000),
-                                        blurRadius: 4,
-                                        offset: Offset(0, 1),
-                                      ),
-                                    ]
-                                  : null,
-                            ),
-                            child: Text(
-                              category,
-                              style: AppTheme.bodyMd.copyWith(
-                                color: isSelected ? AppTheme.onSurface : AppTheme.onSurfaceMuted,
-                                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                ),
-              ),
-
-              // Top Ranking Featured Ads Section
+              // TOP RANKING FEATURED BANNERS (Moved to the Top immediately below Header)
               Consumer(
                 builder: (context, ref, _) {
                   final featuredAsync = ref.watch(featuredListingsProvider);
@@ -461,33 +420,34 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Padding(
-                            padding: const EdgeInsets.fromLTRB(AppTheme.gutter, 10, AppTheme.gutter, 8),
+                            padding: const EdgeInsets.fromLTRB(AppTheme.gutter, 8, AppTheme.gutter, 6),
                             child: Row(
                               children: [
                                 Container(
-                                  padding: const EdgeInsets.all(4),
+                                  padding: const EdgeInsets.all(3),
                                   decoration: BoxDecoration(
                                     color: AppTheme.accentAmber.withValues(alpha: 0.2),
-                                    borderRadius: BorderRadius.circular(6),
+                                    borderRadius: BorderRadius.circular(4),
                                   ),
                                   child: const Icon(
                                     Icons.bolt_rounded,
-                                    size: 16,
+                                    size: 14,
                                     color: AppTheme.accentAmber,
                                   ),
                                 ),
-                                const SizedBox(width: 8),
+                                const SizedBox(width: 6),
                                 Text(
-                                  'TOP RANKING FEATURED',
+                                  'FEATURED PROMOTIONS',
                                   style: AppTheme.labelUppercase.copyWith(
-                                    letterSpacing: 1.2,
+                                    letterSpacing: 1.0,
+                                    fontSize: 11,
                                     color: AppTheme.accentAmber,
                                     fontWeight: FontWeight.w800,
                                   ),
                                 ),
                                 const Spacer(),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(AppTheme.radiusFull),
                                     border: Border.all(color: AppTheme.accentAmber.withValues(alpha: 0.4)),
@@ -497,7 +457,7 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
                                     'SPONSORED',
                                     style: AppTheme.labelSm.copyWith(
                                       color: AppTheme.accentAmber,
-                                      fontSize: 10,
+                                      fontSize: 9,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
@@ -505,14 +465,15 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
                               ],
                             ),
                           ),
+                          // Compact, Sleek Banner Carousel (height reduced to 88px)
                           SizedBox(
-                            height: 140,
+                            height: 94,
                             child: ListView.separated(
                               physics: const BouncingScrollPhysics(),
                               padding: const EdgeInsets.symmetric(horizontal: AppTheme.gutter),
                               scrollDirection: Axis.horizontal,
                               itemCount: featuredItems.length,
-                              separatorBuilder: (_, __) => const SizedBox(width: 12),
+                              separatorBuilder: (_, __) => const SizedBox(width: 10),
                               itemBuilder: (context, index) {
                                 final f = featuredItems[index] as Map<String, dynamic>;
                                 final priceMinor = (f['price_minor'] ?? 0) as num;
@@ -521,27 +482,26 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
 
                                 return RepaintBoundary(
                                   child: Container(
-                                    width: 250,
+                                    width: 220,
                                     decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+                                      borderRadius: BorderRadius.circular(AppTheme.radiusMd),
                                       gradient: LinearGradient(
                                         begin: Alignment.topLeft,
                                         end: Alignment.bottomRight,
                                         colors: [
-                                          AppTheme.accentAmber.withValues(alpha: 0.18),
-                                          AppTheme.primaryLavender.withValues(alpha: 0.08),
-                                          const Color(0x0AFFFFFF),
+                                          AppTheme.accentAmber.withValues(alpha: 0.20),
+                                          AppTheme.backgroundMid.withValues(alpha: 0.85),
                                         ],
                                       ),
                                       border: Border.all(
                                         color: AppTheme.accentAmber.withValues(alpha: 0.45),
-                                        width: 1.2,
+                                        width: 1.0,
                                       ),
                                     ),
                                     child: Material(
                                       color: Colors.transparent,
                                       child: InkWell(
-                                        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+                                        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
                                         onTap: () {
                                           Navigator.of(context).push(
                                             MaterialPageRoute(
@@ -550,27 +510,28 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
                                           );
                                         },
                                         child: Padding(
-                                          padding: const EdgeInsets.all(12),
+                                          padding: const EdgeInsets.all(10),
                                           child: Column(
                                             crossAxisAlignment: CrossAxisAlignment.start,
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                             children: [
                                               Row(
                                                 children: [
                                                   Container(
-                                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
                                                     decoration: BoxDecoration(
                                                       color: AppTheme.accentAmber,
-                                                      borderRadius: BorderRadius.circular(4),
+                                                      borderRadius: BorderRadius.circular(3),
                                                     ),
                                                     child: const Row(
                                                       mainAxisSize: MainAxisSize.min,
                                                       children: [
-                                                        Icon(Icons.star_rounded, size: 12, color: Colors.black),
+                                                        Icon(Icons.star_rounded, size: 10, color: Colors.black),
                                                         SizedBox(width: 2),
                                                         Text(
-                                                          'FEATURED',
+                                                          'BANNER',
                                                           style: TextStyle(
-                                                            fontSize: 9,
+                                                            fontSize: 8,
                                                             fontWeight: FontWeight.w900,
                                                             color: Colors.black,
                                                           ),
@@ -583,27 +544,27 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
                                                     f['location_label']?.toString() ?? 'Pakistan',
                                                     style: AppTheme.caption.copyWith(
                                                       color: AppTheme.onSurfaceMuted,
-                                                      fontSize: 10,
+                                                      fontSize: 9,
                                                     ),
                                                   ),
                                                 ],
                                               ),
-                                              const Spacer(),
                                               Text(
                                                 f['title']?.toString() ?? '',
                                                 maxLines: 1,
                                                 overflow: TextOverflow.ellipsis,
-                                                style: AppTheme.bodyMd.copyWith(
+                                                style: AppTheme.bodySm.copyWith(
                                                   fontWeight: FontWeight.w700,
                                                   color: AppTheme.onSurface,
+                                                  fontSize: 13,
                                                 ),
                                               ),
-                                              const SizedBox(height: 4),
                                               Text(
                                                 formattedPrice,
                                                 style: AppTheme.priceSm.copyWith(
                                                   color: AppTheme.accentAmber,
                                                   fontWeight: FontWeight.bold,
+                                                  fontSize: 14,
                                                 ),
                                               ),
                                             ],
@@ -624,6 +585,11 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
                   );
                 },
               ),
+
+              // Modern OLX-Style Visual Category Buttons Grid
+              const OlxCategoryGrid(),
+
+              const SizedBox(height: 4),
 
               // Listings Feed
               Expanded(
