@@ -146,17 +146,34 @@ class _MyListingsScreenState extends ConsumerState<MyListingsScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: AppTheme.gutter, vertical: 12),
                 child: Row(
                   children: [
-                    NebulaGlassIconButton(
-                      icon: Icons.arrow_back_ios_new_rounded,
-                      onPressed: () => Navigator.pop(context),
-                      tooltip: 'Back',
-                    ),
-                    const SizedBox(width: 14),
+                    if (Navigator.canPop(context)) ...[
+                      NebulaGlassIconButton(
+                        icon: Icons.arrow_back_ios_new_rounded,
+                        onPressed: () => Navigator.pop(context),
+                        tooltip: 'Back',
+                      ),
+                      const SizedBox(width: 14),
+                    ] else ...[
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppTheme.surfaceGlass,
+                          borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                          border: Border.all(color: AppTheme.borderHairline),
+                        ),
+                        child: const Icon(
+                          Icons.view_agenda_rounded,
+                          color: Color(0xFF38BDF8),
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                    ],
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text('SELLER WORKSPACE', style: AppTheme.labelUppercase),
-                        Text('My Listings', style: AppTheme.headlineMd),
+                        Text('My Ads', style: AppTheme.headlineMd),
                       ],
                     ),
                     const Spacer(),

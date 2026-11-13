@@ -518,7 +518,7 @@ class NebulaAvatar extends StatelessWidget {
   }
 }
 
-/// Signature Floating Glass Tab Bar with center elevated CTA
+/// Signature Bottom Navigation Tab Bar with center elevated SELL CTA (OLX Style)
 class FloatingGlassTabBar extends StatelessWidget {
   final int selectedIndex;
   final ValueChanged<int> onTabSelected;
@@ -534,103 +534,188 @@ class FloatingGlassTabBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.fromLTRB(AppTheme.gutter, 0, AppTheme.gutter, 24),
-      height: 64,
-      child: RepaintBoundary(
-        child: Stack(
-          clipBehavior: Clip.none,
-          alignment: Alignment.center,
-          children: [
-            // Glass Bar Container
-            ClipRRect(
-              borderRadius: BorderRadius.circular(AppTheme.radius2Xl),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                child: Container(
-                  height: 64,
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  decoration: BoxDecoration(
-                    color: AppTheme.backgroundMid.withValues(alpha: 0.88),
-                    borderRadius: BorderRadius.circular(AppTheme.radius2Xl),
-                    border: Border.all(color: AppTheme.borderHairline, width: 1),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Color(0x80000000),
-                        blurRadius: 30,
-                        offset: Offset(0, 15),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      _buildTabItem(0, Icons.home_rounded, 'Home'),
-                      _buildTabItem(1, Icons.grid_view_rounded, 'Categories'),
-                      const SizedBox(width: 56), // Gap for center floating FAB
-                      _buildTabItem(3, Icons.chat_bubble_rounded, 'Chats'),
-                      _buildTabItem(4, Icons.person_rounded, 'Profile'),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-
-            // Center FAB button that breaks the top edge
-            Positioned(
-              top: -20,
-              child: GestureDetector(
-                onTap: onCenterFabPressed,
-                child: Container(
-                  width: 56,
-                  height: 56,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: AppTheme.primaryCtaGradient,
-                    border: Border.all(
-                      color: AppTheme.background,
-                      width: 4,
+      decoration: BoxDecoration(
+        color: const Color(0xF50F1420),
+        border: Border(
+          top: BorderSide(
+            color: AppTheme.borderHairline.withValues(alpha: 0.8),
+            width: 1.0,
+          ),
+        ),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x66000000),
+            blurRadius: 20,
+            offset: Offset(0, -5),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        top: false,
+        child: SizedBox(
+          height: 62,
+          child: Stack(
+            clipBehavior: Clip.none,
+            alignment: Alignment.center,
+            children: [
+              Row(
+                children: [
+                  // Tab 0: Home
+                  Expanded(
+                    child: _buildTabItem(
+                      index: 0,
+                      activeIcon: Icons.home_filled,
+                      inactiveIcon: Icons.home_outlined,
+                      label: 'Home',
                     ),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Color(0x66D8B4FE), // rgba(216,180,254,0.40)
-                        blurRadius: 16,
-                        spreadRadius: 2,
+                  ),
+
+                  // Tab 1: Chats
+                  Expanded(
+                    child: _buildTabItem(
+                      index: 1,
+                      activeIcon: Icons.chat_bubble_rounded,
+                      inactiveIcon: Icons.chat_bubble_outline_rounded,
+                      label: 'Chats',
+                    ),
+                  ),
+
+                  // Center Gap for SELL button
+                  const SizedBox(width: 68),
+
+                  // Tab 3: My Ads
+                  Expanded(
+                    child: _buildTabItem(
+                      index: 3,
+                      activeIcon: Icons.view_agenda_rounded,
+                      inactiveIcon: Icons.view_agenda_outlined,
+                      label: 'My Ads',
+                    ),
+                  ),
+
+                  // Tab 4: Account
+                  Expanded(
+                    child: _buildTabItem(
+                      index: 4,
+                      activeIcon: Icons.person_rounded,
+                      inactiveIcon: Icons.person_outline_rounded,
+                      label: 'Account',
+                    ),
+                  ),
+                ],
+              ),
+
+              // Center Raised SELL Button (OLX Style multi-color gradient ring + plus)
+              Positioned(
+                top: -18,
+                child: GestureDetector(
+                  onTap: onCenterFabPressed,
+                  behavior: HitTestBehavior.opaque,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 54,
+                        height: 54,
+                        padding: const EdgeInsets.all(3.5),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: const SweepGradient(
+                            colors: [
+                              Color(0xFF38BDF8), // Cyan
+                              Color(0xFF34D399), // Mint
+                              Color(0xFFFBBF24), // Amber/Yellow
+                              Color(0xFF818CF8), // Indigo
+                              Color(0xFF38BDF8), // Cyan
+                            ],
+                          ),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Color(0x5538BDF8),
+                              blurRadius: 14,
+                              spreadRadius: 1,
+                              offset: Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: Container(
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Color(0xFF0F1420),
+                          ),
+                          child: const Icon(
+                            Icons.add_rounded,
+                            size: 32,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        'SELL',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 0.5,
+                          color: selectedIndex == 2
+                              ? const Color(0xFF38BDF8)
+                              : Colors.white.withValues(alpha: 0.9),
+                        ),
                       ),
                     ],
                   ),
-                  child: const Icon(
-                    Icons.add_circle_rounded,
-                    size: 32,
-                    color: AppTheme.onPrimary,
-                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildTabItem(int index, IconData icon, String tooltip) {
+  Widget _buildTabItem({
+    required int index,
+    required IconData activeIcon,
+    required IconData inactiveIcon,
+    required String label,
+  }) {
     final isActive = selectedIndex == index;
 
     return GestureDetector(
       onTap: () => onTabSelected(index),
       behavior: HitTestBehavior.opaque,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        width: 48,
-        height: 48,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: isActive ? Colors.white.withValues(alpha: 0.10) : Colors.transparent,
-          boxShadow: isActive ? AppTheme.activeTabGlow : null,
-        ),
-        child: Icon(
-          icon,
-          size: 24,
-          color: isActive ? AppTheme.onSurface : AppTheme.onSurfaceMuted,
+      child: Container(
+        color: Colors.transparent,
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              curve: Curves.easeOut,
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+              decoration: BoxDecoration(
+                color: isActive ? Colors.white.withValues(alpha: 0.08) : Colors.transparent,
+                borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+              ),
+              child: Icon(
+                isActive ? activeIcon : inactiveIcon,
+                size: 22,
+                color: isActive ? const Color(0xFF38BDF8) : AppTheme.onSurfaceMuted,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                color: isActive ? const Color(0xFF38BDF8) : AppTheme.onSurfaceMuted,
+                letterSpacing: 0.1,
+              ),
+              maxLines: 1,
+            ),
+          ],
         ),
       ),
     );

@@ -4,13 +4,13 @@ import 'core/theme/app_theme.dart';
 import 'core/network/api_client.dart';
 import 'core/localization/app_strings.dart';
 import 'core/widgets/nebula_glass_widgets.dart';
-import 'features/categories/screens/categories_screen.dart';
 import 'features/categories/widgets/olx_category_grid.dart';
 import 'features/chat/screens/chat_list_screen.dart';
 import 'features/listings/providers/favorites_provider.dart';
 import 'features/listings/providers/filter_provider.dart';
 import 'features/listings/screens/favorites_screen.dart';
 import 'features/listings/screens/listing_detail_screen.dart';
+import 'features/listings/screens/my_listings_screen.dart';
 import 'features/listings/screens/nearby_radar_screen.dart';
 import 'features/listings/screens/post_ad_screen.dart';
 import 'features/listings/widgets/filter_bottom_sheet.dart';
@@ -219,9 +219,9 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
 
   final List<Widget> _screens = const [
     HomeFeedScreen(),
-    CategoriesScreen(),
-    PostAdScreen(),
     ChatListScreen(),
+    PostAdScreen(),
+    MyListingsScreen(),
     ProfileScreen(),
   ];
 
@@ -271,7 +271,6 @@ class HomeFeedScreen extends ConsumerStatefulWidget {
 
 class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
   final _searchController = TextEditingController();
-  bool _isSearchVisible = false;
 
   @override
   void dispose() {
@@ -291,123 +290,296 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Sleek Cosmic Top App Bar with Search Button beside Radar
+              // OLX-Style Top Department Selector (All, Motors, Property)
               Padding(
-                padding: const EdgeInsets.fromLTRB(AppTheme.gutter, 14, AppTheme.gutter, 8),
+                padding: const EdgeInsets.fromLTRB(AppTheme.gutter, 10, AppTheme.gutter, 6),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'NEBULA MARKETPLACE',
-                          style: AppTheme.labelUppercase,
+                    // Big Live (All)
+                    Expanded(
+                      flex: 4,
+                      child: GestureDetector(
+                        onTap: () {
+                          ref.read(activeCategoryFilterProvider.notifier).state = 'All';
+                        },
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 180),
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          decoration: BoxDecoration(
+                            color: ref.watch(activeCategoryFilterProvider) == 'All'
+                                ? const Color(0xFF1E293B)
+                                : const Color(0xFF131722),
+                            borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                            border: Border.all(
+                              color: ref.watch(activeCategoryFilterProvider) == 'All'
+                                  ? const Color(0xFF38BDF8)
+                                  : const Color(0xFF282F42),
+                              width: 1.2,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                width: 8,
+                                height: 8,
+                                decoration: const BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Color(0xFF38BDF8),
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              const Text(
+                                'Big Live',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 13,
+                                  color: Colors.white,
+                                  letterSpacing: 0.3,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                        const SizedBox(height: 2),
-                        Text(
-                          'Big Live',
-                          style: AppTheme.displayLg.copyWith(fontSize: 26),
-                        ),
-                      ],
+                      ),
                     ),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // Search Button beside Radar
-                        NebulaGlassIconButton(
-                          icon: _isSearchVisible ? Icons.close_rounded : Icons.search_rounded,
-                          color: _isSearchVisible ? AppTheme.accentPink : AppTheme.primaryLavender,
-                          tooltip: 'Search',
-                          onPressed: () {
-                            setState(() {
-                              _isSearchVisible = !_isSearchVisible;
-                              if (!_isSearchVisible) {
-                                _searchController.clear();
-                                ref.read(searchQueryProvider.notifier).state = '';
-                              }
-                            });
-                          },
+                    const SizedBox(width: 8),
+
+                    // Motors
+                    Expanded(
+                      flex: 4,
+                      child: GestureDetector(
+                        onTap: () {
+                          ref.read(activeCategoryFilterProvider.notifier).state = 'Motors';
+                        },
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 180),
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          decoration: BoxDecoration(
+                            color: ref.watch(activeCategoryFilterProvider) == 'Motors'
+                                ? const Color(0xFF1E293B)
+                                : const Color(0xFF131722),
+                            borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                            border: Border.all(
+                              color: ref.watch(activeCategoryFilterProvider) == 'Motors'
+                                  ? const Color(0xFF38BDF8)
+                                  : const Color(0xFF282F42),
+                              width: 1.2,
+                            ),
+                          ),
+                          child: const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.directions_car_filled_rounded, size: 16, color: Color(0xFF94A3B8)),
+                              SizedBox(width: 6),
+                              Text(
+                                'Motors',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 12.5,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                        const SizedBox(width: 6),
-                        NebulaGlassIconButton(
-                          icon: Icons.radar_rounded,
-                          color: AppTheme.secondaryMint,
-                          tooltip: 'Nearby Radar Deals',
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (_) => const NearbyRadarScreen()),
-                            );
-                          },
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+
+                    // Property
+                    Expanded(
+                      flex: 4,
+                      child: GestureDetector(
+                        onTap: () {
+                          ref.read(activeCategoryFilterProvider.notifier).state = 'Property';
+                        },
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 180),
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          decoration: BoxDecoration(
+                            color: ref.watch(activeCategoryFilterProvider) == 'Property'
+                                ? const Color(0xFF1E293B)
+                                : const Color(0xFF131722),
+                            borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                            border: Border.all(
+                              color: ref.watch(activeCategoryFilterProvider) == 'Property'
+                                  ? const Color(0xFF38BDF8)
+                                  : const Color(0xFF282F42),
+                              width: 1.2,
+                            ),
+                          ),
+                          child: const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.home_work_rounded, size: 16, color: Color(0xFFF87171)),
+                              SizedBox(width: 6),
+                              Text(
+                                'Property',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 12.5,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                        const SizedBox(width: 6),
-                        NebulaGlassIconButton(
-                          icon: Icons.filter_list_rounded,
-                          color: ref.watch(filterProvider).isActive ? AppTheme.accentCyan : AppTheme.onSurfaceVariant,
-                          tooltip: 'Filters',
-                          onPressed: () {
-                            FilterBottomSheet.show(context);
-                          },
-                        ),
-                        const SizedBox(width: 6),
-                        NebulaGlassIconButton(
-                          icon: Icons.favorite_border_rounded,
-                          color: AppTheme.accentPink,
-                          tooltip: 'Saved Favorites',
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (_) => const FavoritesScreen()),
-                            );
-                          },
-                        ),
-                      ],
+                      ),
                     ),
                   ],
                 ),
               ),
 
-              // Expandable Search Bar (when user taps search button)
-              if (_isSearchVisible)
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: AppTheme.gutter, vertical: 4),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(AppTheme.radiusXl),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: AppTheme.surfaceGlass,
-                        borderRadius: BorderRadius.circular(AppTheme.radiusXl),
-                        border: Border.all(color: AppTheme.primaryLavender.withValues(alpha: 0.4), width: 1),
-                      ),
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 0),
-                      child: TextField(
-                        controller: _searchController,
-                        autofocus: true,
-                        style: AppTheme.bodyMd.copyWith(color: AppTheme.onSurface),
-                        decoration: InputDecoration(
-                          hintText: 'Search cars, mobiles, luxury villas...',
-                          hintStyle: AppTheme.bodySm.copyWith(color: AppTheme.onSurfaceMuted),
-                          prefixIcon: const Icon(Icons.search_rounded, color: AppTheme.primaryLavender, size: 20),
-                          suffixIcon: _searchController.text.isNotEmpty
-                              ? IconButton(
-                                  icon: const Icon(Icons.clear_rounded, color: AppTheme.onSurfaceVariant, size: 16),
-                                  onPressed: () {
-                                    _searchController.clear();
-                                    ref.read(searchQueryProvider.notifier).state = '';
-                                  },
-                                )
-                              : null,
-                          border: InputBorder.none,
-                          contentPadding: const EdgeInsets.symmetric(vertical: 10),
+              // Search Bar & Action Buttons (Classic, prominent & flexible)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(AppTheme.gutter, 4, AppTheme.gutter, 4),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF161A26),
+                          borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                          border: Border.all(color: const Color(0xFF2A3144), width: 1),
                         ),
-                        onSubmitted: (query) {
-                          ref.read(searchQueryProvider.notifier).state = query.trim();
-                        },
+                        child: Row(
+                          children: [
+                            const SizedBox(width: 10),
+                            const Icon(Icons.search_rounded, color: Color(0xFF94A3B8), size: 20),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: TextField(
+                                controller: _searchController,
+                                style: AppTheme.bodyMd.copyWith(color: AppTheme.onSurface, fontSize: 13),
+                                decoration: const InputDecoration(
+                                  hintText: 'Search cars, mobiles, jobs...',
+                                  hintStyle: TextStyle(color: Color(0xFF64748B), fontSize: 13),
+                                  border: InputBorder.none,
+                                  isDense: true,
+                                  contentPadding: EdgeInsets.symmetric(vertical: 10),
+                                ),
+                                onChanged: (query) {
+                                  ref.read(searchQueryProvider.notifier).state = query.trim();
+                                },
+                              ),
+                            ),
+                            if (_searchController.text.isNotEmpty)
+                              GestureDetector(
+                                onTap: () {
+                                  _searchController.clear();
+                                  ref.read(searchQueryProvider.notifier).state = '';
+                                  setState(() {});
+                                },
+                                child: const Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 8),
+                                  child: Icon(Icons.close_rounded, color: AppTheme.onSurfaceMuted, size: 16),
+                                ),
+                              ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
+                    const SizedBox(width: 8),
+                    // Nearby Radar Button
+                    NebulaGlassIconButton(
+                      icon: Icons.radar_rounded,
+                      color: AppTheme.secondaryMint,
+                      tooltip: 'Nearby Radar Deals',
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const NearbyRadarScreen()),
+                        );
+                      },
+                    ),
+                    const SizedBox(width: 6),
+                    // Saved Favorites Button
+                    NebulaGlassIconButton(
+                      icon: Icons.favorite_border_rounded,
+                      color: AppTheme.accentPink,
+                      tooltip: 'Saved Favorites',
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const FavoritesScreen()),
+                        );
+                      },
+                    ),
+                  ],
                 ),
+              ),
+
+              // Location Selector Line (e.g. 📍 Pakistan ∨)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppTheme.gutter, vertical: 4),
+                child: Row(
+                  children: [
+                    const Icon(Icons.location_on_rounded, size: 14, color: Color(0xFF38BDF8)),
+                    const SizedBox(width: 4),
+                    PopupMenuButton<String>(
+                      initialValue: ref.watch(filterProvider).city ?? 'Pakistan',
+                      onSelected: (city) {
+                        ref.read(filterProvider.notifier).setCity(city == 'Pakistan' ? null : city);
+                      },
+                      color: AppTheme.backgroundMid,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                        side: const BorderSide(color: AppTheme.borderHairline),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            ref.watch(filterProvider).city ?? 'Pakistan',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          const Icon(Icons.keyboard_arrow_down_rounded, size: 16, color: Color(0xFF94A3B8)),
+                        ],
+                      ),
+                      itemBuilder: (context) => [
+                        const PopupMenuItem(value: 'Pakistan', child: Text('All Pakistan')),
+                        const PopupMenuItem(value: 'Lahore', child: Text('Lahore')),
+                        const PopupMenuItem(value: 'Karachi', child: Text('Karachi')),
+                        const PopupMenuItem(value: 'Islamabad', child: Text('Islamabad')),
+                        const PopupMenuItem(value: 'Rawalpindi', child: Text('Rawalpindi')),
+                        const PopupMenuItem(value: 'Faisalabad', child: Text('Faisalabad')),
+                        const PopupMenuItem(value: 'Multan', child: Text('Multan')),
+                        const PopupMenuItem(value: 'Peshawar', child: Text('Peshawar')),
+                      ],
+                    ),
+                    const Spacer(),
+                    // Filter Sheet Trigger
+                    GestureDetector(
+                      onTap: () => FilterBottomSheet.show(context),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.tune_rounded,
+                            size: 14,
+                            color: ref.watch(filterProvider).isActive ? const Color(0xFF38BDF8) : const Color(0xFF94A3B8),
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Filters',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: ref.watch(filterProvider).isActive ? const Color(0xFF38BDF8) : const Color(0xFF94A3B8),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
 
               // TOP RANKING FEATURED BANNERS (Moved to the Top immediately below Header)
               Consumer(
@@ -631,150 +803,288 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
                     }
 
                     return RefreshIndicator(
-                      color: AppTheme.primaryLavender,
+                      color: const Color(0xFF38BDF8),
                       backgroundColor: AppTheme.backgroundMid,
                       onRefresh: () async {
                         ref.invalidate(listingsFeedProvider);
                       },
-                      child: ListView.separated(
+                      child: CustomScrollView(
                         physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
-                        cacheExtent: 600,
-                        padding: const EdgeInsets.fromLTRB(
-                          AppTheme.gutter,
-                          12,
-                          AppTheme.gutter,
-                          110, // Generous padding to clear floating glass tab bar
-                        ),
-                        itemCount: listings.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 16),
-                        itemBuilder: (context, index) {
-                          final item = listings[index] as Map<String, dynamic>;
-                          final priceMinor = (item['price_minor'] ?? 0) as num;
-                          final currency = item['currency']?.toString() ?? 'PKR';
-                          final formattedPrice = '$currency ${(priceMinor / 100).toStringAsFixed(0)}';
-                          final location = item['location_label']?.toString() ?? 'Pakistan';
-                          final condition = item['condition_code']?.toString() ?? 'used';
-                          final isNew = condition.toLowerCase() == 'new';
-
-                          return RepaintBoundary(
-                            child: NebulaGlassCard(
-                              padding: const EdgeInsets.all(16),
-                              borderRadius: AppTheme.radius2Xl,
-                              onTap: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (_) => ListingDetailScreen(listing: item),
-                                  ),
-                                );
-                              },
+                        slivers: [
+                          // Section Header
+                          SliverToBoxAdapter(
+                            child: Padding(
+                              padding: const EdgeInsets.fromLTRB(AppTheme.gutter, 10, AppTheme.gutter, 8),
                               child: Row(
                                 children: [
-                                  // Thumbnail with neon status badge
                                   Container(
-                                    width: 88,
-                                    height: 88,
+                                    width: 4,
+                                    height: 14,
                                     decoration: BoxDecoration(
-                                      color: AppTheme.backgroundMid,
-                                      borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                                      border: Border.all(color: AppTheme.borderHairline),
-                                    ),
-                                    child: Stack(
-                                      alignment: Alignment.center,
-                                      children: [
-                                        Icon(
-                                          Icons.photo_size_select_actual_rounded,
-                                          color: AppTheme.primaryLavender.withValues(alpha: 0.6),
-                                          size: 34,
-                                        ),
-                                        Positioned(
-                                          bottom: 6,
-                                          left: 6,
-                                          child: NebulaBadgePill(
-                                            label: condition,
-                                            color: isNew ? AppTheme.accentMint : AppTheme.accentAmber,
-                                          ),
-                                        ),
-                                      ],
+                                      color: const Color(0xFF38BDF8),
+                                      borderRadius: BorderRadius.circular(2),
                                     ),
                                   ),
-                                  const SizedBox(width: 16),
-
-                                  // Listing Info
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          item['title']?.toString() ?? 'Untitled',
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: AppTheme.bodyMd.copyWith(
-                                            fontWeight: FontWeight.w700,
-                                            color: AppTheme.onSurface,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Row(
-                                          children: [
-                                            const Icon(
-                                              Icons.location_on_rounded,
-                                              size: 13,
-                                              color: AppTheme.onSurfaceMuted,
-                                            ),
-                                            const SizedBox(width: 4),
-                                            Expanded(
-                                              child: Text(
-                                                location,
-                                                maxLines: 1,
-                                                overflow: TextOverflow.ellipsis,
-                                                style: AppTheme.bodySm.copyWith(
-                                                  color: AppTheme.onSurfaceVariant,
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        const SizedBox(height: 8),
-                                        Text(
-                                          formattedPrice,
-                                          style: AppTheme.numeralLg.copyWith(
-                                            color: AppTheme.primaryLavender,
-                                            shadows: const [
-                                              Shadow(
-                                                color: Color(0x66D8B4FE),
-                                                blurRadius: 8,
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'FRESH RECOMMENDATIONS',
+                                    style: AppTheme.labelUppercase.copyWith(
+                                      letterSpacing: 1.1,
+                                      fontSize: 11,
+                                      color: const Color(0xFFCBD5E1),
+                                      fontWeight: FontWeight.w800,
                                     ),
                                   ),
-                                  IconButton(
-                                    icon: Icon(
-                                      ref.watch(favoritesProvider).contains((item['id'] as num?)?.toInt())
-                                          ? Icons.favorite_rounded
-                                          : Icons.favorite_border_rounded,
-                                      color: ref.watch(favoritesProvider).contains((item['id'] as num?)?.toInt())
-                                          ? AppTheme.accentPink
-                                          : AppTheme.onSurfaceMuted,
-                                      size: 20,
+                                  const Spacer(),
+                                  Text(
+                                    '${listings.length} Items',
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                      color: Color(0xFF94A3B8),
                                     ),
-                                    onPressed: () {
-                                      final id = (item['id'] as num?)?.toInt() ?? 0;
-                                      ref.read(favoritesProvider.notifier).toggleFavorite(id);
-                                    },
-                                  ),
-                                  const Icon(
-                                    Icons.chevron_right_rounded,
-                                    color: AppTheme.onSurfaceMuted,
-                                    size: 20,
                                   ),
                                 ],
                               ),
                             ),
-                          );
-                        },
+                          ),
+
+                          // 2-Column Photo Thumbnail Grid (OLX Style)
+                          SliverPadding(
+                            padding: const EdgeInsets.fromLTRB(AppTheme.gutter, 4, AppTheme.gutter, 110),
+                            sliver: SliverGrid(
+                              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 2,
+                                childAspectRatio: 0.68,
+                                crossAxisSpacing: 12,
+                                mainAxisSpacing: 12,
+                              ),
+                              delegate: SliverChildBuilderDelegate(
+                                (context, index) {
+                                  final item = listings[index] as Map<String, dynamic>;
+                                  final priceMinor = (item['price_minor'] ?? 0) as num;
+                                  final currency = item['currency']?.toString() ?? 'PKR';
+                                  final formattedPrice = '$currency ${(priceMinor / 100).toStringAsFixed(0)}';
+                                  final location = item['location_label']?.toString() ?? 'Pakistan';
+                                  final condition = item['condition_code']?.toString() ?? 'used';
+                                  final isNew = condition.toLowerCase() == 'new';
+                                  final categoryId = (item['category_id'] as num?)?.toInt();
+                                  final isFav = ref.watch(favoritesProvider).contains((item['id'] as num?)?.toInt());
+
+                                  // Choose matching high-def photo asset for thumbnail
+                                  String? assetThumb;
+                                  if (categoryId == 1) {
+                                    assetThumb = 'assets/icons/cat_vehicles.png';
+                                  } else if (categoryId == 3) {
+                                    assetThumb = 'assets/icons/cat_mobiles.png';
+                                  } else if (categoryId == 5) {
+                                    assetThumb = 'assets/icons/cat_property_sale.png';
+                                  } else if (categoryId == 6) {
+                                    assetThumb = 'assets/icons/cat_electronics.png';
+                                  }
+
+                                  return RepaintBoundary(
+                                    child: Material(
+                                      color: Colors.transparent,
+                                      child: InkWell(
+                                        borderRadius: BorderRadius.circular(14),
+                                        onTap: () {
+                                          Navigator.of(context).push(
+                                            MaterialPageRoute(
+                                              builder: (_) => ListingDetailScreen(listing: item),
+                                            ),
+                                          );
+                                        },
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFF161A26),
+                                            borderRadius: BorderRadius.circular(14),
+                                            border: Border.all(
+                                              color: const Color(0xFF282F42),
+                                              width: 1.0,
+                                            ),
+                                            boxShadow: const [
+                                              BoxShadow(
+                                                color: Color(0x33000000),
+                                                blurRadius: 8,
+                                                offset: Offset(0, 3),
+                                              ),
+                                            ],
+                                          ),
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              // Large Photo Thumbnail with Badge & Heart
+                                              ClipRRect(
+                                                borderRadius: const BorderRadius.vertical(top: Radius.circular(13)),
+                                                child: Container(
+                                                  height: 130,
+                                                  width: double.infinity,
+                                                  color: const Color(0xFF1A1F2D),
+                                                  child: Stack(
+                                                    fit: StackFit.expand,
+                                                    children: [
+                                                      // Photo Asset or Network Image
+                                                      if (assetThumb != null)
+                                                        Image.asset(
+                                                          assetThumb,
+                                                          fit: BoxFit.cover,
+                                                        )
+                                                      else
+                                                        Center(
+                                                          child: Icon(
+                                                            Icons.photo_size_select_actual_rounded,
+                                                            color: AppTheme.primaryLavender.withValues(alpha: 0.5),
+                                                            size: 38,
+                                                          ),
+                                                        ),
+
+                                                      // Subtle bottom gradient overlay for contrast
+                                                      Positioned(
+                                                        left: 0,
+                                                        right: 0,
+                                                        bottom: 0,
+                                                        height: 36,
+                                                        child: Container(
+                                                          decoration: BoxDecoration(
+                                                            gradient: LinearGradient(
+                                                              begin: Alignment.topCenter,
+                                                              end: Alignment.bottomCenter,
+                                                              colors: [
+                                                                Colors.transparent,
+                                                                Colors.black.withValues(alpha: 0.6),
+                                                              ],
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ),
+
+                                                      // Condition Badge (top left)
+                                                      Positioned(
+                                                        top: 8,
+                                                        left: 8,
+                                                        child: Container(
+                                                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+                                                          decoration: BoxDecoration(
+                                                            color: isNew
+                                                                ? const Color(0xE610B981) // Green
+                                                                : const Color(0xE6F59E0B), // Amber
+                                                            borderRadius: BorderRadius.circular(4),
+                                                          ),
+                                                          child: Text(
+                                                            isNew ? 'NEW' : 'USED',
+                                                            style: const TextStyle(
+                                                              fontSize: 9,
+                                                              fontWeight: FontWeight.w900,
+                                                              color: Colors.white,
+                                                              letterSpacing: 0.5,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ),
+
+                                                      // Favorite Heart Button (top right)
+                                                      Positioned(
+                                                        top: 4,
+                                                        right: 4,
+                                                        child: GestureDetector(
+                                                          onTap: () {
+                                                            final id = (item['id'] as num?)?.toInt() ?? 0;
+                                                            ref.read(favoritesProvider.notifier).toggleFavorite(id);
+                                                          },
+                                                          child: Container(
+                                                            padding: const EdgeInsets.all(6),
+                                                            decoration: BoxDecoration(
+                                                              shape: BoxShape.circle,
+                                                              color: Colors.black.withValues(alpha: 0.5),
+                                                            ),
+                                                            child: Icon(
+                                                              isFav ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                                                              size: 16,
+                                                              color: isFav ? AppTheme.accentPink : Colors.white,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+
+                                              // Listing Information below Thumbnail
+                                              Padding(
+                                                padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+                                                child: Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    // Price in bold striking color
+                                                    Text(
+                                                      formattedPrice,
+                                                      style: const TextStyle(
+                                                        fontSize: 15,
+                                                        fontWeight: FontWeight.w900,
+                                                        color: Color(0xFF38BDF8),
+                                                        letterSpacing: -0.2,
+                                                      ),
+                                                      maxLines: 1,
+                                                      overflow: TextOverflow.ellipsis,
+                                                    ),
+                                                    const SizedBox(height: 3),
+
+                                                    // Title (2 lines)
+                                                    SizedBox(
+                                                      height: 32,
+                                                      child: Text(
+                                                        item['title']?.toString() ?? 'Untitled',
+                                                        maxLines: 2,
+                                                        overflow: TextOverflow.ellipsis,
+                                                        style: const TextStyle(
+                                                          fontSize: 12,
+                                                          fontWeight: FontWeight.w600,
+                                                          color: Colors.white,
+                                                          height: 1.25,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    const SizedBox(height: 4),
+
+                                                    // Location
+                                                    Row(
+                                                      children: [
+                                                        const Icon(
+                                                          Icons.location_on_rounded,
+                                                          size: 11,
+                                                          color: Color(0xFF94A3B8),
+                                                        ),
+                                                        const SizedBox(width: 3),
+                                                        Expanded(
+                                                          child: Text(
+                                                            location,
+                                                            maxLines: 1,
+                                                            overflow: TextOverflow.ellipsis,
+                                                            style: const TextStyle(
+                                                              fontSize: 10,
+                                                              color: Color(0xFF94A3B8),
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                                childCount: listings.length,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     );
                   },

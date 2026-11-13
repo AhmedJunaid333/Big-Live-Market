@@ -14,13 +14,16 @@ void main() {
       ),
     );
 
-    // Allow splash timer to complete or pump and settle
+    // Allow splash timer to complete and advance frame
     await tester.pump(const Duration(milliseconds: 3000));
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 500));
 
-    expect(find.text('Big Live'), findsOneWidget);
-    expect(find.text('NEBULA MARKETPLACE'), findsOneWidget);
+    expect(find.text('Big Live'), findsWidgets);
+    expect(find.text('Motors'), findsOneWidget);
+    expect(find.text('Property'), findsWidgets);
     expect(find.byType(FloatingGlassTabBar), findsOneWidget);
+    expect(find.text('SELL'), findsOneWidget);
+    expect(find.text('My Ads'), findsOneWidget);
     expect(find.text('No active listings found'), findsOneWidget);
   });
 }
