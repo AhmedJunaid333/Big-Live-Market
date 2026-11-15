@@ -97,18 +97,9 @@ Route::get('/dashboard', function () {
 // Marketplace Post / Sell Ad Routes
 Route::get('/sell', function () {
     return view('listings.create');
-});
+})->middleware('auth');
 
 Route::post('/sell', function (Request $request) {
-    if (!Auth::check()) {
-        $seller = User::where('email', 'seller@biglive.pk')->first() ?? User::first();
-        if ($seller) {
-            Auth::login($seller);
-        } else {
-            return redirect('/login')->with('error', 'Please log in to post an ad.');
-        }
-    }
-
     $validated = $request->validate([
         'title' => ['required', 'string', 'min:5', 'max:180'],
         'category_id' => ['required', 'integer'],
@@ -135,7 +126,7 @@ Route::post('/sell', function (Request $request) {
     ]);
 
     return redirect('/listings/' . $listing->id)->with('success', 'Your ad has been published successfully!');
-});
+})->middleware('auth');
 
 // Listing Detail
 Route::get('/listings/{listing}', function ($id) {
@@ -220,4 +211,16 @@ Route::get('/safety', function () {
         'title' => 'Safety & Fraud Prevention Tips',
         'content' => '<p>Stay secure while buying and selling on Big Live Marketplace by following these essential guidelines:</p><ul class="list-disc pl-5 mt-2 space-y-2"><li><strong>Meet in Public:</strong> Always meet buyers or sellers in well-lit, public places such as shopping malls or public markets.</li><li><strong>Inspect Before Paying:</strong> Never transfer funds in advance without physically verifying the product and its documents.</li><li><strong>Use Built-in Chat:</strong> Communicate through the official Big Live in-app chat to maintain an audit trail.</li></ul>',
     ]);
+});
+
+// Sponsored earnings: browser-based administration, protected by session auth and role checks.
+Route::get('/admin/earn', [\App\Http\Controllers\Web\EarnAdminDashboardController::class, 'index'])
+    ->middleware('auth')
+    ->name('admin.earn.dashboard');
+
+Route::middleware('auth')->prefix('admin/earn')->name('admin.earn.')->group(function () {
+    Route::get('/campaigns', [\App\Http\Controllers\Web\EarnAdminOperationsController::class, 'campaigns'])->name('campaigns');
+    Route::post('/campaigns', [\App\Http\Controllers\Web\EarnAdminOperationsController::class, 'storeCampaign'])->name('campaigns.store')->middleware('throttle:10,1');
+    Route::get('/submissions', [\App\Http\Controllers\Web\EarnAdminOperationsController::class, 'submissions'])->name('submissions');
+    Route::get('/withdrawals', [\App\Http\Controllers\Web\EarnAdminOperationsController::class, 'withdrawals'])->name('withdrawals');
 });
