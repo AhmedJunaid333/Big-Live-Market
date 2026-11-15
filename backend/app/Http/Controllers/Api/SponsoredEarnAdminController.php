@@ -22,13 +22,14 @@ class SponsoredEarnAdminController extends Controller
             'title' => ['required','string','max:200'],
             'instructions' => ['required','string','max:5000'],
             'task_type' => ['required', Rule::in(['survey','honest_feedback','usability_test'])],
-            'reward_minor' => ['required','integer','min:1'],
+            'reward_minor' => ['required','integer','min:1','max:1000000000'],
             'max_participants' => ['required','integer','min:1','max:100000'],
         ]);
         $id = DB::transaction(function () use ($campaign, $data) {
             $c = DB::table('sponsored_campaigns')->where('id',$campaign)->lockForUpdate()->first();
             abort_unless($c && $c->payment_verified_at && in_array($c->status,['draft','active'],true),422,'Campaign is not funded');
             $budget = $data['reward_minor'] * $data['max_participants'];
+            abort_unless($c->received_minor >= $c->reserved_minor && $c->received_minor - $c->reserved_minor >= $c->spent_minor, 422, 'Invalid campaign budget accounting');
             abort_unless($budget <= $c->received_minor - $c->reserved_minor - $c->spent_minor,422,'Insufficient funded campaign budget');
             DB::table('sponsored_campaigns')->where('id',$campaign)->update([
                 'reserved_minor'=>$c->reserved_minor+$budget,'updated_at'=>now()
@@ -79,7 +80,7 @@ class SponsoredEarnAdminController extends Controller
             if ($data['decision']==='approved') {
                 $c=DB::table('sponsored_campaigns')->where('id',$t->campaign_id)->lockForUpdate()->first();
                 abort_unless($c && $c->payment_verified_at && $c->status==='active' && $t->status==='active',422,'Task not active and funded');
-                abort_unless($t->approved_count < $t->max_participants && $c->reserved_minor >= $t->reward_minor,422,'No funded slots');
+                abort_unless($t->approved_count < $t->max_participants && $c->reserved_minor >= $t->reward_minor && $c->received_minor >= $c->reserved_minor && $c->received_minor - $c->reserved_minor >= $c->spent_minor,422,'No funded slots');
                 DB::table('sponsored_campaigns')->where('id',$c->id)->update([
                     'reserved_minor'=>$c->reserved_minor-$t->reward_minor,
                     'spent_minor'=>$c->spent_minor+$t->reward_minor,'updated_at'=>now()
@@ -124,7 +125,7 @@ class SponsoredEarnAdminController extends Controller
         DB::transaction(function () use ($request,$withdrawal) {
             $w=DB::table('earning_withdrawals')->where('id',$withdrawal)->lockForUpdate()->first();
             abort_unless($w && $w->status==='transferred_pending_confirmation',409,'Not awaiting confirmation');
-            abort_if($w->processed_by===$request->user()->id,403,'Second approver must be different');
+            abort_if((int) $w->processed_by === (int) $request->user()->id,403,'Second approver must be different');
             $wallet=DB::table('earning_wallets')->where('user_id',$w->user_id)->lockForUpdate()->first();
             abort_unless($wallet && $wallet->held_minor >= $w->amount_minor,422,'Held balance mismatch');
             DB::table('earning_wallets')->where('id',$wallet->id)->update([
