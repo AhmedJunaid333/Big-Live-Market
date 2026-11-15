@@ -31,6 +31,28 @@ class SponsoredEarningSecurityTest extends TestCase
         ]);
     }
 
+    public function test_submission_rejected_when_campaign_has_expired(): void
+    {
+        $user = $this->actor('buyer');
+        $campaign = DB::table('sponsored_campaigns')->insertGetId([
+            'company_name' => 'Example', 'title' => 'Expired campaign',
+            'status' => 'active', 'payment_verified_at' => now(),
+            'received_minor' => 1000, 'reserved_minor' => 1000,
+            'starts_at' => now()->subDays(3), 'ends_at' => now()->subDay(),
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+        $task = DB::table('sponsored_tasks')->insertGetId([
+            'campaign_id' => $campaign, 'title' => 'Expired task',
+            'instructions' => 'Complete a survey', 'task_type' => 'survey',
+            'reward_minor' => 100, 'max_participants' => 10,
+            'status' => 'active', 'created_at' => now(), 'updated_at' => now(),
+        ]);
+        $this->actingAs($user)->postJson("/api/v1/earn/tasks/{$task}/submit", [
+            'proof' => 'Proof of task completion',
+        ])->assertStatus(422);
+        $this->assertDatabaseCount('sponsored_task_submissions', 0);
+    }
+
     public function test_withdrawal_cannot_exceed_available_balance(): void
     {
         $user = $this->actor('user');
