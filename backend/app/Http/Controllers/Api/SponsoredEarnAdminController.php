@@ -119,6 +119,34 @@ class SponsoredEarnAdminController extends Controller
         return response()->json(['message'=>'Transfer recorded; independent confirmation required']);
     }
 
+    public function rejectWithdrawal(Request $request, int $withdrawal): JsonResponse
+    {
+        $this->authorizeRole($request, ['finance', 'super_admin']);
+        $request->validate(['reason' => ['required', 'string', 'min:5', 'max:500']]);
+
+        DB::transaction(function () use ($withdrawal) {
+            $w = DB::table('earning_withdrawals')->where('id', $withdrawal)->lockForUpdate()->first();
+            abort_unless($w && $w->status === 'requested', 409, 'Only untransferred requests can be rejected');
+            $wallet = DB::table('earning_wallets')->where('user_id', $w->user_id)->lockForUpdate()->first();
+            abort_unless($wallet && $wallet->held_minor >= $w->amount_minor, 422, 'Held balance mismatch');
+
+            DB::table('earning_ledger_entries')->insert([
+                'user_id' => $w->user_id, 'entry_type' => 'withdrawal_released',
+                'amount_minor' => $w->amount_minor, 'reference_type' => 'withdrawal',
+                'reference_id' => $w->id, 'created_at' => now(), 'updated_at' => now(),
+            ]);
+            DB::table('earning_wallets')->where('id', $wallet->id)->update([
+                'available_minor' => $wallet->available_minor + $w->amount_minor,
+                'held_minor' => $wallet->held_minor - $w->amount_minor, 'updated_at' => now(),
+            ]);
+            DB::table('earning_withdrawals')->where('id', $w->id)->update([
+                'status' => 'rejected', 'updated_at' => now(),
+            ]);
+        }, 3);
+
+        return response()->json(['message' => 'Untransferred withdrawal rejected; funds restored']);
+    }
+
     public function confirmTransfer(Request $request, int $withdrawal): JsonResponse
     {
         $this->authorizeRole($request,['finance','super_admin']);
