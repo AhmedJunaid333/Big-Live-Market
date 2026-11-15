@@ -47,7 +47,7 @@ class SponsoredEarningSecurityTest extends TestCase
             'reward_minor' => 100, 'max_participants' => 10,
             'status' => 'active', 'created_at' => now(), 'updated_at' => now(),
         ]);
-        $this->actingAs($user)->postJson("/api/v1/earn/tasks/{$task}/submit", [
+        $this->actingAs($user)->postJson("/api/v1/earn/tasks/{$task}/submissions", [
             'proof' => 'Proof of task completion',
         ])->assertStatus(422);
         $this->assertDatabaseCount('sponsored_task_submissions', 0);
