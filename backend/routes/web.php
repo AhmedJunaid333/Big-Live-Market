@@ -217,3 +217,9 @@ Route::get('/safety', function () {
 Route::get('/admin/earn', [\App\Http\Controllers\Web\EarnAdminDashboardController::class, 'index'])
     ->middleware('auth')
     ->name('admin.earn.dashboard');
+
+Route::middleware('auth')->prefix('admin/earn')->name('admin.earn.')->group(function () {
+    Route::get('/campaigns', [\App\Http\Controllers\Web\EarnAdminOperationsController::class, 'campaigns'])->name('campaigns');
+    Route::post('/campaigns', [\App\Http\Controllers\Web\EarnAdminOperationsController::class, 'storeCampaign'])->name('campaigns.store')->middleware('throttle:10,1');
+    Route::get('/withdrawals', [\App\Http\Controllers\Web\EarnAdminOperationsController::class, 'withdrawals'])->name('withdrawals');
+});
