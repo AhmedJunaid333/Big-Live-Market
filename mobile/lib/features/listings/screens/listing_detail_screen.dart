@@ -477,7 +477,7 @@ class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
                                   context,
                                   MaterialPageRoute(
                                     builder: (_) => ChatDetailScreen(
-                                      conversationId: id,
+                                      listingId: id,
                                       sellerName: sellerName,
                                       listingTitle: title,
                                       initialPrice: formattedPrice,

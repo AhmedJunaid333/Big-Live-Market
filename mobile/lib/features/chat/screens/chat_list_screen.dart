@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/nebula_glass_widgets.dart';
+import '../../auth/providers/auth_provider.dart';
 import '../../earn/providers/earn_provider.dart';
 import '../../earn/widgets/sponsored_missions_sheet.dart';
+import '../providers/chat_provider.dart';
 import 'chat_detail_screen.dart';
 
 class ChatListScreen extends ConsumerStatefulWidget {
@@ -14,45 +16,6 @@ class ChatListScreen extends ConsumerStatefulWidget {
 }
 
 class _ChatListScreenState extends ConsumerState<ChatListScreen> {
-  final List<Map<String, dynamic>> _threads = [
-    {
-      'name': 'Big Live Rewards Official',
-      'item': 'Sponsored Mission Payout',
-      'price': 'PKR 150 Earned',
-      'lastMessage': '🎉 Congratulations! Your mission reward of PKR 150 was credited to your wallet.',
-      'time': 'Just now',
-      'unread': 1,
-      'isSystem': true,
-    },
-    {
-      'name': 'Malik Tariq (Verified Seller)',
-      'item': 'Toyota Land Cruiser V8 ZX',
-      'price': 'PKR 38,500,000',
-      'lastMessage': 'Sent an offer: PKR 37,000,000',
-      'time': '10:16 AM',
-      'unread': 2,
-      'isSystem': false,
-    },
-    {
-      'name': 'Usman Electronics',
-      'item': 'iPhone 15 Pro Max 256GB Dual SIM',
-      'price': 'PKR 365,000',
-      'lastMessage': 'Yes, box and warranty card available.',
-      'time': 'Yesterday',
-      'unread': 0,
-      'isSystem': false,
-    },
-    {
-      'name': 'DHA Prime Properties',
-      'item': '1 Kanal Luxury Designer Villa DHA 6',
-      'price': 'PKR 85,000,000',
-      'lastMessage': 'Can schedule a walkthrough this Saturday.',
-      'time': 'Nov 8',
-      'unread': 0,
-      'isSystem': false,
-    },
-  ];
-
   void _openMissionsSheet() {
     showModalBottomSheet(
       context: context,
@@ -61,24 +24,38 @@ class _ChatListScreenState extends ConsumerState<ChatListScreen> {
       builder: (_) => SponsoredMissionsSheet(
         onMissionCompleted: (mission) {
           ref.read(earnProvider.notifier).claimMissionReward(mission);
-          setState(() {
-            _threads.insert(0, {
-              'name': 'Big Live Rewards Official',
-              'item': 'Task Reward Verified',
-              'price': 'Rs. ${mission.rewardPkr} Credited',
-              'lastMessage': '✅ Your task proof for "${mission.title}" was approved! PKR ${mission.rewardPkr} available in wallet.',
-              'time': 'Just now',
-              'unread': 1,
-              'isSystem': true,
-            });
-          });
         },
       ),
     );
   }
 
+  String _formatTime(dynamic rawDate) {
+    if (rawDate == null) return 'Active';
+    try {
+      final dt = DateTime.parse(rawDate.toString()).toLocal();
+      final now = DateTime.now();
+      final diff = now.difference(dt);
+      if (diff.inMinutes < 2) return 'Just now';
+      if (diff.inHours < 1) return '${diff.inMinutes}m ago';
+      if (diff.inDays < 1) {
+        final hour = dt.hour % 12 == 0 ? 12 : dt.hour % 12;
+        final ampm = dt.hour >= 12 ? 'PM' : 'AM';
+        final min = dt.minute.toString().padLeft(2, '0');
+        return '$hour:$min $ampm';
+      }
+      if (diff.inDays < 7) return '${diff.inDays}d ago';
+      return '${dt.day}/${dt.month}';
+    } catch (_) {
+      return 'Active';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authProvider);
+    final currentUserId = authState.user?.id;
+    final conversationsAsync = ref.watch(conversationsProvider);
+
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: NebulaAtmosphericBackground(
@@ -98,91 +75,66 @@ class _ChatListScreenState extends ConsumerState<ChatListScreen> {
                       children: [
                         Text(
                           'MESSAGES & MISSIONS',
-                          style: AppTheme.labelUppercase,
+                          style: AppTheme.labelUppercase.copyWith(
+                            letterSpacing: 2.2,
+                            color: AppTheme.primaryLavender,
+                          ),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 2),
                         Text(
-                          'Direct Inquiries',
-                          style: AppTheme.displayLg,
+                          'Secure Marketplace In-App Chat',
+                          style: AppTheme.caption.copyWith(color: AppTheme.onSurfaceMuted),
                         ),
                       ],
                     ),
-                    // Quick Action Button to open Missions
-                    GestureDetector(
-                      onTap: _openMissionsSheet,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFFF59E0B), Color(0xFFD97706)],
-                          ),
-                          borderRadius: BorderRadius.circular(AppTheme.radiusFull),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFFF59E0B).withValues(alpha: 0.3),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: const Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.stars_rounded, color: Colors.white, size: 16),
-                            SizedBox(width: 5),
-                            Text(
-                              'Earn Rs',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w800,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                    IconButton(
+                      icon: const Icon(Icons.refresh_rounded, color: AppTheme.primaryLavender),
+                      tooltip: 'Refresh conversations',
+                      onPressed: () => ref.invalidate(conversationsProvider),
                     ),
                   ],
                 ),
               ),
 
-              // Sponsored Earn / Daily Missions Action Banner (Message Section Feature)
+              // Sponsored Mission & Payout Banner
               Padding(
-                padding: const EdgeInsets.fromLTRB(AppTheme.gutter, 0, AppTheme.gutter, 14),
+                padding: const EdgeInsets.fromLTRB(AppTheme.gutter, 0, AppTheme.gutter, 16),
                 child: GestureDetector(
                   onTap: _openMissionsSheet,
                   child: Container(
-                    padding: const EdgeInsets.all(14),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          const Color(0xFF1E293B),
-                          const Color(0xFF0F172A).withValues(alpha: 0.9),
-                        ],
+                      gradient: const LinearGradient(
+                        colors: [Color(0x33F59E0B), Color(0x11D97706)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
                       ),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: const Color(0xFFF59E0B).withValues(alpha: 0.4),
+                        color: const Color(0xFFF59E0B).withValues(alpha: 0.35),
                       ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFFF59E0B).withValues(alpha: 0.1),
-                          blurRadius: 12,
-                        ),
-                      ],
                     ),
                     child: Row(
                       children: [
                         Container(
-                          padding: const EdgeInsets.all(10),
+                          width: 40,
+                          height: 40,
                           decoration: BoxDecoration(
-                            color: const Color(0xFFF59E0B).withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(12),
+                            shape: BoxShape.circle,
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFFF59E0B), Color(0xFFD97706)],
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFFF59E0B).withValues(alpha: 0.4),
+                                blurRadius: 10,
+                              ),
+                            ],
                           ),
                           child: const Icon(
-                            Icons.monetization_on_rounded,
-                            color: Color(0xFFFBBF24),
-                            size: 24,
+                            Icons.stars_rounded,
+                            color: Colors.white,
+                            size: 22,
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -195,7 +147,7 @@ class _ChatListScreenState extends ConsumerState<ChatListScreen> {
                                   Text(
                                     'Daily Earning Missions',
                                     style: TextStyle(
-                                      fontSize: 14,
+                                      fontSize: 13,
                                       fontWeight: FontWeight.w800,
                                       color: Colors.white,
                                     ),
@@ -235,135 +187,196 @@ class _ChatListScreenState extends ConsumerState<ChatListScreen> {
 
               // Chat Thread List
               Expanded(
-                child: ListView.separated(
-                  physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
-                  cacheExtent: 600,
-                  padding: const EdgeInsets.fromLTRB(
-                    AppTheme.gutter,
-                    0,
-                    AppTheme.gutter,
-                    120, // Clear floating bottom tab bar
-                  ),
-                  itemCount: _threads.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 12),
-                  itemBuilder: (context, index) {
-                    final chat = _threads[index];
-                    final unread = (chat['unread'] ?? 0) as int;
-                    final isSystem = chat['isSystem'] == true;
-
-                    return RepaintBoundary(
-                      child: NebulaGlassCard(
-                        padding: const EdgeInsets.all(16),
-                        borderRadius: AppTheme.radius2Xl,
-                        onTap: () {
-                          if (isSystem) {
-                            _openMissionsSheet();
-                          } else {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) => ChatDetailScreen(
-                                  contactName: chat['name'] as String,
-                                  itemTitle: chat['item'] as String,
-                                ),
-                              ),
-                            );
-                          }
-                        },
-                        child: Row(
+                child: RefreshIndicator(
+                  color: AppTheme.primaryLavender,
+                  onRefresh: () async => ref.invalidate(conversationsProvider),
+                  child: conversationsAsync.when(
+                    data: (conversations) {
+                      if (conversations.isEmpty) {
+                        return ListView(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          padding: const EdgeInsets.symmetric(horizontal: AppTheme.gutter, vertical: 48),
                           children: [
-                            if (isSystem)
-                              Container(
-                                width: 48,
-                                height: 48,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  gradient: const LinearGradient(
-                                    colors: [Color(0xFFF59E0B), Color(0xFFD97706)],
-                                  ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: const Color(0xFFF59E0B).withValues(alpha: 0.3),
-                                      blurRadius: 8,
-                                    ),
-                                  ],
-                                ),
-                                child: const Icon(
-                                  Icons.stars_rounded,
-                                  color: Colors.white,
-                                  size: 26,
-                                ),
-                              )
-                            else
-                              NebulaAvatar(
-                                initials: (chat['name'] as String)[0],
-                                size: 48,
-                                isOnline: unread > 0,
-                              ),
-                            const SizedBox(width: 14),
-                            Expanded(
+                            Center(
                               child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Expanded(
-                                        child: Text(
-                                          chat['name'] as String,
-                                          style: AppTheme.bodyMd.copyWith(
-                                            fontWeight: FontWeight.w700,
-                                            color: isSystem ? const Color(0xFFFBBF24) : AppTheme.onSurface,
-                                          ),
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                      Text(
-                                        chat['time'] as String,
-                                        style: AppTheme.caption.copyWith(
-                                          color: AppTheme.onSurfaceMuted,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    chat['item'] as String,
-                                    style: AppTheme.bodySm.copyWith(
-                                      color: isSystem ? const Color(0xFF34D399) : AppTheme.primaryLavender,
-                                      fontWeight: FontWeight.w600,
+                                  Container(
+                                    padding: const EdgeInsets.all(20),
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: AppTheme.primaryLavender.withValues(alpha: 0.1),
+                                      border: Border.all(color: AppTheme.primaryLavender.withValues(alpha: 0.3)),
                                     ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
+                                    child: const Icon(
+                                      Icons.chat_bubble_outline_rounded,
+                                      size: 48,
+                                      color: AppTheme.primaryLavender,
+                                    ),
                                   ),
-                                  const SizedBox(height: 4),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Expanded(
-                                        child: Text(
-                                          chat['lastMessage'] as String,
-                                          style: AppTheme.bodySm.copyWith(
-                                            color: AppTheme.onSurfaceVariant,
-                                          ),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                      if (unread > 0)
-                                        NebulaBadgePill(
-                                          text: isSystem ? 'REWARD' : '$unread NEW',
-                                          tone: isSystem ? NebulaBadgeTone.lavender : NebulaBadgeTone.mint,
-                                        ),
-                                    ],
+                                  const SizedBox(height: 18),
+                                  Text(
+                                    'No Active Conversations',
+                                    style: AppTheme.headlineMd.copyWith(color: Colors.white),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                                    child: Text(
+                                      'Browse marketplace ads and tap "Direct Chat" to start negotiating directly with verified sellers.',
+                                      textAlign: TextAlign.center,
+                                      style: AppTheme.bodySm.copyWith(color: AppTheme.onSurfaceMuted),
+                                    ),
                                   ),
                                 ],
                               ),
                             ),
                           ],
+                        );
+                      }
+
+                      return ListView.separated(
+                        physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+                        cacheExtent: 600,
+                        padding: const EdgeInsets.fromLTRB(
+                          AppTheme.gutter,
+                          0,
+                          AppTheme.gutter,
+                          120, // Clear floating bottom tab bar
+                        ),
+                        itemCount: conversations.length,
+                        separatorBuilder: (_, __) => const SizedBox(height: 12),
+                        itemBuilder: (context, index) {
+                          final conv = conversations[index] as Map<String, dynamic>;
+                          final convId = conv['id'] as int;
+                          final listing = conv['listing'] as Map<String, dynamic>?;
+                          final buyer = conv['buyer'] as Map<String, dynamic>?;
+                          final seller = conv['seller'] as Map<String, dynamic>?;
+
+                          // Determine conversation partner name
+                          final bool isBuyer = currentUserId != null && conv['buyer_id'] == currentUserId;
+                          final String otherPartyName = isBuyer
+                              ? (seller?['name']?.toString() ?? 'Seller')
+                              : (buyer?['name']?.toString() ?? 'Buyer');
+
+                          final String listingTitle = listing?['title']?.toString() ?? 'Marketplace Item';
+                          final int unread = (conv['unread_count'] ?? 0) as int;
+
+                          // Extract latest message
+                          String lastMessageText = 'Conversation started';
+                          final messagesList = conv['messages'] as List<dynamic>?;
+                          if (messagesList != null && messagesList.isNotEmpty) {
+                            final latestMsg = messagesList.first as Map<String, dynamic>;
+                            lastMessageText = latestMsg['body']?.toString() ?? 'Message';
+                          }
+
+                          final timeLabel = _formatTime(conv['last_message_at'] ?? conv['updated_at']);
+
+                          return RepaintBoundary(
+                            child: NebulaGlassCard(
+                              padding: const EdgeInsets.all(16),
+                              borderRadius: AppTheme.radius2Xl,
+                              onTap: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) => ChatDetailScreen(
+                                      conversationId: convId,
+                                      contactName: otherPartyName,
+                                      itemTitle: listingTitle,
+                                      initialPrice: listing != null && listing['price_minor'] != null
+                                          ? 'PKR ${(listing['price_minor'] / 100).toStringAsFixed(0)}'
+                                          : null,
+                                    ),
+                                  ),
+                                ).then((_) => ref.invalidate(conversationsProvider));
+                              },
+                              child: Row(
+                                children: [
+                                  NebulaAvatar(
+                                    initials: otherPartyName.isNotEmpty ? otherPartyName[0] : 'U',
+                                    size: 48,
+                                    isOnline: unread > 0,
+                                  ),
+                                  const SizedBox(width: 14),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Expanded(
+                                              child: Text(
+                                                otherPartyName,
+                                                style: AppTheme.bodyMd.copyWith(
+                                                  fontWeight: FontWeight.w700,
+                                                  color: AppTheme.onSurface,
+                                                ),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                            Text(
+                                              timeLabel,
+                                              style: AppTheme.caption.copyWith(
+                                                color: AppTheme.onSurfaceMuted,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          listingTitle,
+                                          style: AppTheme.bodySm.copyWith(
+                                            color: AppTheme.primaryLavender,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Expanded(
+                                              child: Text(
+                                                lastMessageText,
+                                                style: AppTheme.bodySm.copyWith(
+                                                  color: AppTheme.onSurfaceVariant,
+                                                ),
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                            if (unread > 0)
+                                              NebulaBadgePill(
+                                                text: '$unread NEW',
+                                                tone: NebulaBadgeTone.mint,
+                                              ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                    loading: () => const Center(
+                      child: CircularProgressIndicator(color: AppTheme.primaryLavender),
+                    ),
+                    error: (err, _) => Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(AppTheme.gutter),
+                        child: Text(
+                          'Failed to load chats: $err',
+                          style: AppTheme.bodySm.copyWith(color: AppTheme.accentRose),
                         ),
                       ),
-                    );
-                  },
+                    ),
+                  ),
                 ),
               ),
             ],

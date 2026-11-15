@@ -24,7 +24,19 @@ class ChatController extends Controller
 
         $conversations = Conversation::where('buyer_id', $userId)
             ->orWhere('seller_id', $userId)
-            ->with(['listing:id,title,price_minor,currency', 'buyer:id,name', 'seller:id,name'])
+            ->with([
+                'listing:id,title,price_minor,currency',
+                'buyer:id,name',
+                'seller:id,name',
+                'messages' => function ($q) {
+                    $q->latest('id')->limit(1);
+                },
+            ])
+            ->withCount([
+                'messages as unread_count' => function ($q) use ($userId) {
+                    $q->where('sender_id', '!=', $userId)->whereNull('read_at');
+                },
+            ])
             ->orderBy('last_message_at', 'desc')
             ->get();
 
