@@ -8,7 +8,7 @@
 <body class="bg-slate-100 text-slate-900">
 <main class="max-w-7xl mx-auto p-4 md:p-8">
 <header class="mb-8 flex flex-wrap items-center justify-between gap-4"><div><p class="text-sm text-indigo-600 font-semibold">BIG LIVE MARKETPLACE</p><h1 class="text-3xl font-bold">Sponsored Earn Administration</h1><p class="text-slate-600 mt-2">Role-restricted read-only overview. Financial actions require separate verification.</p></div><a href="/dashboard" class="underline">Marketplace dashboard</a></header>
-<nav class="flex flex-wrap gap-3 mb-6">@if($canManage)<a class="bg-white rounded-lg border p-3 underline" href="{{ route('admin.earn.campaigns') }}">Manage company campaigns</a>@endif @if($canFinance)<a class="bg-white rounded-lg border p-3 underline" href="{{ route('admin.earn.withdrawals') }}">Review withdrawals</a>@endif</nav>
+<nav class="flex flex-wrap gap-3 mb-6">@if($canManage)<a class="bg-white rounded-lg border p-3 underline" href="{{ route('admin.earn.campaigns') }}">Manage company campaigns</a><a class="bg-white rounded-lg border p-3 underline" href="{{ route('admin.earn.submissions') }}">Review task submissions</a>@endif @if($canFinance)<a class="bg-white rounded-lg border p-3 underline" href="{{ route('admin.earn.withdrawals') }}">Review withdrawals</a>@endif</nav>
 <div class="grid md:grid-cols-3 gap-4 mb-8">
 <div class="bg-white rounded-xl p-5 shadow-sm"><p class="text-slate-500">Campaigns shown</p><strong class="text-3xl">{{ $campaigns->count() }}</strong></div>
 <div class="bg-white rounded-xl p-5 shadow-sm"><p class="text-slate-500">Pending submissions shown</p><strong class="text-3xl">{{ $submissions->count() }}</strong></div>
