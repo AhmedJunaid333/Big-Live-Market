@@ -53,6 +53,27 @@ class SponsoredEarningSecurityTest extends TestCase
         $this->assertDatabaseCount('sponsored_task_submissions', 0);
     }
 
+    public function test_underfunded_campaign_rejects_submissions(): void
+    {
+        $user = $this->actor('buyer');
+        $campaign = DB::table('sponsored_campaigns')->insertGetId([
+            'company_name' => 'Example', 'title' => 'Underfunded',
+            'status' => 'active', 'payment_verified_at' => now(),
+            'received_minor' => 100, 'reserved_minor' => 200,
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+        $task = DB::table('sponsored_tasks')->insertGetId([
+            'campaign_id' => $campaign, 'title' => 'Survey',
+            'instructions' => 'Complete the survey', 'task_type' => 'survey',
+            'reward_minor' => 100, 'max_participants' => 2,
+            'status' => 'active', 'created_at' => now(), 'updated_at' => now(),
+        ]);
+        $this->actingAs($user)->postJson("/api/v1/earn/tasks/{$task}/submissions", [
+            'proof' => 'Valid proof submitted',
+        ])->assertStatus(422);
+        $this->assertDatabaseCount('sponsored_task_submissions', 0);
+    }
+
     public function test_withdrawal_cannot_exceed_available_balance(): void
     {
         $user = $this->actor('user');
