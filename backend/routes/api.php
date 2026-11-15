@@ -37,7 +37,7 @@ Route::prefix('v1')->group(function () {
     Route::post('/payments/{provider}/webhook', [\App\Http\Controllers\Api\BillingController::class, 'handleWebhook']);
 
     // Sponsored earning missions are visible only for manually funded, enabled campaigns.
-    Route::get('/earn/missions', [\\App\\Http\\Controllers\\Api\\SponsoredEarnController::class, 'missions']);
+    Route::get('/earn/missions', [\App\Http\Controllers\Api\SponsoredEarnController::class, 'missions']);
 
     // Public business storefronts
     Route::get('/businesses/{slug}', [\App\Http\Controllers\Api\BusinessController::class, 'show']);
@@ -127,11 +127,11 @@ Route::prefix('v1')->group(function () {
         Route::post('/support/tickets/{ticket}/messages', [\App\Http\Controllers\Api\SupportController::class, 'sendMessage']);
 
         // Earning balances and manual payout requests
-        Route::post('/earn/tasks/{task}/submissions', [\\App\\Http\\Controllers\\Api\\SponsoredEarnController::class, 'submit']);
-        Route::get('/earn/wallet', [\\App\\Http\\Controllers\\Api\\SponsoredEarnController::class, 'wallet']);
-        Route::post('/earn/withdrawals', [\\App\\Http\\Controllers\\Api\\SponsoredEarnController::class, 'requestWithdrawal']);
-        Route::post('/admin/earn/campaigns', [\\App\\Http\\Controllers\\Api\\SponsoredEarnController::class, 'createCampaign']);
-        Route::post('/admin/earn/campaigns/{campaign}/verify-payment', [\\App\\Http\\Controllers\\Api\\SponsoredEarnController::class, 'verifyPayment']);
+        Route::post('/earn/tasks/{task}/submissions', [\App\Http\Controllers\Api\SponsoredEarnController::class, 'submit']);
+        Route::get('/earn/wallet', [\App\Http\Controllers\Api\SponsoredEarnController::class, 'wallet']);
+        Route::post('/earn/withdrawals', [\App\Http\Controllers\Api\SponsoredEarnController::class, 'requestWithdrawal']);
+        Route::post('/admin/earn/campaigns', [\App\Http\Controllers\Api\SponsoredEarnController::class, 'createCampaign']);
+        Route::post('/admin/earn/campaigns/{campaign}/verify-payment', [\App\Http\Controllers\Api\SponsoredEarnController::class, 'verifyPayment']);
 
         Route::post('/admin/earn/campaigns/{campaign}/tasks', [\App\Http\Controllers\Api\SponsoredEarnAdminController::class, 'createTask']);
         Route::patch('/admin/earn/campaigns/{campaign}/state', [\App\Http\Controllers\Api\SponsoredEarnAdminController::class, 'setCampaignState']);
