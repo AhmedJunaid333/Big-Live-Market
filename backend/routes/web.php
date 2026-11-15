@@ -212,3 +212,8 @@ Route::get('/safety', function () {
         'content' => '<p>Stay secure while buying and selling on Big Live Marketplace by following these essential guidelines:</p><ul class="list-disc pl-5 mt-2 space-y-2"><li><strong>Meet in Public:</strong> Always meet buyers or sellers in well-lit, public places such as shopping malls or public markets.</li><li><strong>Inspect Before Paying:</strong> Never transfer funds in advance without physically verifying the product and its documents.</li><li><strong>Use Built-in Chat:</strong> Communicate through the official Big Live in-app chat to maintain an audit trail.</li></ul>',
     ]);
 });
+
+// Sponsored earnings: browser-based administration, protected by session auth and role checks.
+Route::get('/admin/earn', [\\App\\Http\\Controllers\\Web\\EarnAdminDashboardController::class, 'index'])
+    ->middleware('auth')
+    ->name('admin.earn.dashboard');
