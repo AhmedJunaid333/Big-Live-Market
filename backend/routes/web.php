@@ -97,18 +97,9 @@ Route::get('/dashboard', function () {
 // Marketplace Post / Sell Ad Routes
 Route::get('/sell', function () {
     return view('listings.create');
-});
+})->middleware('auth');
 
 Route::post('/sell', function (Request $request) {
-    if (!Auth::check()) {
-        $seller = User::where('email', 'seller@biglive.pk')->first() ?? User::first();
-        if ($seller) {
-            Auth::login($seller);
-        } else {
-            return redirect('/login')->with('error', 'Please log in to post an ad.');
-        }
-    }
-
     $validated = $request->validate([
         'title' => ['required', 'string', 'min:5', 'max:180'],
         'category_id' => ['required', 'integer'],
@@ -135,7 +126,7 @@ Route::post('/sell', function (Request $request) {
     ]);
 
     return redirect('/listings/' . $listing->id)->with('success', 'Your ad has been published successfully!');
-});
+})->middleware('auth');
 
 // Listing Detail
 Route::get('/listings/{listing}', function ($id) {
