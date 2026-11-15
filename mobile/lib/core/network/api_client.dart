@@ -4,10 +4,10 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 class ApiClient {
   static const String defaultBaseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'http://127.0.0.1:8000/api/v1',
+    defaultValue: 'http://market.biglive.online/api/v1',
   );
 
-  static const String fallbackBaseUrl = 'http://10.92.3.111:8000/api/v1';
+  static const String fallbackBaseUrl = 'http://127.0.0.1:8000/api/v1';
 
   final Dio _dio;
   final FlutterSecureStorage _storage;

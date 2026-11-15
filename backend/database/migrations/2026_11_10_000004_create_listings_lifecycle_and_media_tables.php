@@ -18,9 +18,9 @@ return new class extends Migration
             $table->json('value_json')->nullable();
             $table->timestamps();
 
-            $table->unique(['listing_id', 'category_attribute_id']);
-            $table->index(['category_attribute_id', 'value_number']);
-            $table->index(['category_attribute_id', 'value_text']);
+            $table->unique(['listing_id', 'category_attribute_id'], 'lav_listing_attr_unique');
+            $table->index(['category_attribute_id', 'value_number'], 'lav_attr_val_num_idx');
+            $table->index(['category_attribute_id', 'value_text'], 'lav_attr_val_text_idx');
         });
 
         Schema::create('media', function (Blueprint $table) {
