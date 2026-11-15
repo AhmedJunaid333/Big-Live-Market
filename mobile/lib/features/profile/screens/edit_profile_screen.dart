@@ -28,7 +28,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     final user = ref.read(authProvider).user;
     _nameController = TextEditingController(text: user?.name ?? '');
     _phoneController = TextEditingController(text: user?.phoneE164 ?? '');
-    _cityController = TextEditingController(text: 'Islamabad / Rawalpindi');
+    _cityController = TextEditingController(text: '');
     _selectedImagePath = user?.avatarPath;
   }
 

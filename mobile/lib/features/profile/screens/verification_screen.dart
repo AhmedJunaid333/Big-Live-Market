@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
@@ -57,12 +58,18 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen> {
 
     try {
       final client = ref.read(apiClientProvider);
+      final formData = FormData.fromMap({
+        'type': _docType,
+        if (_frontImage != null)
+          'evidence': await MultipartFile.fromFile(
+            _frontImage!.path,
+            filename: 'doc_${_docType}_front.jpg',
+          ),
+        'evidence_private_path': 'verifications/${_docType}_${DateTime.now().millisecondsSinceEpoch}.jpg',
+      });
       await client.dio.post(
         '/me/verification',
-        data: {
-          'type': _docType,
-          'evidence_private_path': 'verifications/${_docType}_${DateTime.now().millisecondsSinceEpoch}.jpg',
-        },
+        data: formData,
       );
 
       setState(() => _status = 'pending');

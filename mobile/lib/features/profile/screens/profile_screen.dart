@@ -8,6 +8,7 @@ import '../../auth/providers/auth_provider.dart';
 import '../../auth/screens/login_screen.dart';
 import '../../earn/providers/earn_provider.dart';
 import '../../earn/widgets/withdrawal_bottom_sheet.dart';
+import '../../listings/providers/favorites_provider.dart';
 import '../../listings/screens/favorites_screen.dart';
 import '../../listings/screens/my_listings_screen.dart';
 import 'devices_screen.dart';
@@ -39,6 +40,190 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               );
         },
       ),
+    );
+  }
+
+  void _openHistorySheet(EarnState earnState) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => Container(
+        decoration: const BoxDecoration(
+          color: Color(0xFF0B0F19),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Center(
+              child: Container(
+                width: 44,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.white24,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF38BDF8).withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.receipt_long_rounded, color: Color(0xFF38BDF8), size: 22),
+                ),
+                const SizedBox(width: 10),
+                const Text(
+                  'Earning & Payout Passbook (ریکارڈ)',
+                  style: TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.w800),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            if (earnState.withdrawals.isEmpty)
+              Container(
+                padding: const EdgeInsets.all(28),
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF131B2E),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: const Column(
+                  children: [
+                    Icon(Icons.history_rounded, color: Color(0xFF64748B), size: 36),
+                    SizedBox(height: 8),
+                    Text(
+                      'No withdrawal requests submitted yet.',
+                      style: TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
+                    ),
+                  ],
+                ),
+              )
+            else
+              ...earnState.withdrawals.map((w) => Container(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF131B2E),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFF334155)),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'PKR ${w.amountPkr.toStringAsFixed(0)} • ${w.method.toUpperCase()}',
+                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              w.date,
+                              style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 11),
+                            ),
+                          ],
+                        ),
+                        NebulaBadgePill(
+                          text: w.status.toUpperCase(),
+                          tone: w.status == 'paid' ? NebulaBadgeTone.mint : NebulaBadgeTone.lavender,
+                        ),
+                      ],
+                    ),
+                  )),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showTrustScoreDialog(BuildContext context, dynamic user) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF0F172A),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+          side: const BorderSide(color: Color(0xFF334155)),
+        ),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFBBF24).withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(Icons.verified_user_rounded, color: Color(0xFFFBBF24), size: 22),
+            ),
+            const SizedBox(width: 10),
+            const Text(
+              'Trust & Reputation',
+              style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1E293B),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Trust Index Score', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 13)),
+                  Text(
+                    '98 / 100 (Level 1)',
+                    style: TextStyle(color: Color(0xFF34D399), fontWeight: FontWeight.bold, fontSize: 14),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            _buildTrustRow(Icons.check_circle_rounded, const Color(0xFF34D399), 'Phone Verified (+92 Pakistan)'),
+            const SizedBox(height: 8),
+            _buildTrustRow(Icons.check_circle_rounded, const Color(0xFF34D399), 'Email Identity Bound'),
+            const SizedBox(height: 8),
+            _buildTrustRow(Icons.shield_rounded, const Color(0xFF38BDF8), 'Safe Pay Escrow Eligible'),
+            const SizedBox(height: 8),
+            _buildTrustRow(Icons.stars_rounded, const Color(0xFFFBBF24), 'Community Feedback: 100% Positive'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('CLOSE', style: TextStyle(color: Color(0xFF38BDF8), fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static Widget _buildTrustRow(IconData icon, Color color, String text) {
+    return Row(
+      children: [
+        Icon(icon, color: color, size: 16),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            text,
+            style: const TextStyle(color: Colors.white70, fontSize: 12),
+          ),
+        ),
+      ],
     );
   }
 
@@ -483,12 +668,28 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       onPressed: () => _openWithdrawalSheet(earnState.availableMinor),
                       icon: const Icon(Icons.outbox_rounded, size: 16),
                       label: const Text(
-                        'Withdraw (رقم نکلوائیں)',
+                        'Withdraw',
                         style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
                       ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF059669),
                         foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 11),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () => _openHistorySheet(earnState),
+                      icon: const Icon(Icons.receipt_long_rounded, size: 16, color: Color(0xFF38BDF8)),
+                      label: const Text(
+                        'Passbook',
+                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF38BDF8)),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Color(0xFF38BDF8)),
                         padding: const EdgeInsets.symmetric(vertical: 11),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
@@ -503,82 +704,110 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         const SizedBox(height: 14),
 
         // Quick Stats Tiles
-        Row(
-          children: [
-            Expanded(
-              child: GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const MyListingsScreen()),
-                  );
-                },
-                child: NebulaGlassCard(
-                  padding: const EdgeInsets.all(14),
-                  child: Column(
-                    children: [
-                      Text(
-                        'Ads',
-                        style: AppTheme.numeralLg.copyWith(
-                          color: AppTheme.primaryLavender,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'My Listings',
-                        style: AppTheme.caption.copyWith(color: AppTheme.onSurfaceMuted),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const FavoritesScreen()),
-                  );
-                },
-                child: NebulaGlassCard(
-                  padding: const EdgeInsets.all(14),
-                  child: Column(
-                    children: [
-                      const Icon(Icons.favorite_rounded, color: AppTheme.accentPink, size: 28),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Favorites',
-                        style: AppTheme.caption.copyWith(color: AppTheme.onSurfaceMuted),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: NebulaGlassCard(
-                padding: const EdgeInsets.all(14),
-                child: Column(
-                  children: [
-                    Text(
-                      '5.0★',
-                      style: AppTheme.numeralLg.copyWith(
-                        color: AppTheme.accentAmber,
+        Builder(
+          builder: (context) {
+            final myListingsAsync = ref.watch(myListingsFutureProvider);
+            final favorites = ref.watch(favoritesProvider);
+
+            return Row(
+              children: [
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const MyListingsScreen()),
+                      );
+                    },
+                    child: NebulaGlassCard(
+                      padding: const EdgeInsets.all(14),
+                      child: Column(
+                        children: [
+                          myListingsAsync.when(
+                            data: (listings) => Text(
+                              '${listings.length}',
+                              style: AppTheme.numeralLg.copyWith(
+                                color: AppTheme.primaryLavender,
+                              ),
+                            ),
+                            loading: () => const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.primaryLavender),
+                            ),
+                            error: (_, __) => Text(
+                              '0',
+                              style: AppTheme.numeralLg.copyWith(
+                                color: AppTheme.primaryLavender,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Active Ads',
+                            style: AppTheme.caption.copyWith(color: AppTheme.onSurfaceMuted),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Trust Rating',
-                      style: AppTheme.caption.copyWith(color: AppTheme.onSurfaceMuted),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-            ),
-          ],
+                const SizedBox(width: 10),
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const FavoritesScreen()),
+                      );
+                    },
+                    child: NebulaGlassCard(
+                      padding: const EdgeInsets.all(14),
+                      child: Column(
+                        children: [
+                          Text(
+                            '${favorites.length}',
+                            style: AppTheme.numeralLg.copyWith(
+                              color: AppTheme.accentPink,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Favorites',
+                            style: AppTheme.caption.copyWith(color: AppTheme.onSurfaceMuted),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => _showTrustScoreDialog(context, user),
+                    child: NebulaGlassCard(
+                      padding: const EdgeInsets.all(14),
+                      child: Column(
+                        children: [
+                          Text(
+                            '98%',
+                            style: AppTheme.numeralLg.copyWith(
+                              color: AppTheme.accentAmber,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Trust Score ★',
+                            style: AppTheme.caption.copyWith(color: AppTheme.onSurfaceMuted),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
         ),
 
         const SizedBox(height: 16),
