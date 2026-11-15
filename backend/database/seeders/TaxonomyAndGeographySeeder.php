@@ -256,7 +256,6 @@ class TaxonomyAndGeographySeeder extends Seeder
             $parent = Category::firstOrCreate(
                 ['slug' => $catData['slug']],
                 [
-                    'id' => $catData['id'] ?? null,
                     'name' => $catData['name'],
                     'icon' => $catData['icon'],
                     'sort_order' => $catData['sort_order'],

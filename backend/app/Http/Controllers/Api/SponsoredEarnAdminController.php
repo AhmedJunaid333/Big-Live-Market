@@ -110,7 +110,9 @@ class SponsoredEarnAdminController extends Controller
     public function markTransferred(Request $request, int $withdrawal): JsonResponse
     {
         $this->authorizeRole($request,['finance','super_admin']);
-        $data=$request->validate(['transfer_reference'=>['required','string','max:200']]);
+        $data=$request->validate([
+            'transfer_reference'=>['required','string','max:200','unique:earning_withdrawals,transfer_reference']
+        ]);
         $changed=DB::table('earning_withdrawals')->where('id',$withdrawal)->where('status','requested')->update([
             'status'=>'transferred_pending_confirmation','processed_by'=>$request->user()->id,
             'transfer_reference'=>$data['transfer_reference'],'updated_at'=>now()

@@ -69,7 +69,16 @@ class SponsoredEarnController extends Controller
         ]);
         $withdrawal = DB::transaction(function () use ($request,$data) {
             $wallet = DB::table('earning_wallets')->where('user_id',$request->user()->id)->lockForUpdate()->first();
-            abort_unless($wallet, 422, 'Earning wallet not found');
+            if (! $wallet) {
+                DB::table('earning_wallets')->insert([
+                    'user_id' => $request->user()->id,
+                    'available_minor' => 0,
+                    'held_minor' => 0,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+                $wallet = DB::table('earning_wallets')->where('user_id', $request->user()->id)->lockForUpdate()->first();
+            }
             $existing = DB::table('earning_withdrawals')->where('user_id', $request->user()->id)
                 ->where('idempotency_key', $data['idempotency_key'])->first();
             if ($existing) {
@@ -149,7 +158,7 @@ class SponsoredEarnController extends Controller
         $this->requireRole($request,['finance','super_admin']);
         $data = $request->validate([
             'received_minor'=>['required','integer','min:1'],
-            'payment_reference'=>['required','string','max:200'],
+            'payment_reference'=>['required','string','max:200','unique:sponsored_campaigns,payment_reference'],
         ]);
         $updated = DB::table('sponsored_campaigns')->where('id',$campaign)
             ->whereNull('payment_verified_at')->where('status','draft')

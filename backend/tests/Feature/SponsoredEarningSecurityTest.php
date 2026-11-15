@@ -238,4 +238,69 @@ class SponsoredEarningSecurityTest extends TestCase
         ]);
         $this->assertDatabaseCount('earning_ledger_entries', 1);
     }
+
+    public function test_duplicate_payment_reference_on_campaign_verification_is_rejected(): void
+    {
+        $finance = $this->actor('finance');
+        $c1 = DB::table('sponsored_campaigns')->insertGetId([
+            'company_name' => 'Brand A',
+            'title' => 'Campaign A',
+            'status' => 'draft',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        $c2 = DB::table('sponsored_campaigns')->insertGetId([
+            'company_name' => 'Brand B',
+            'title' => 'Campaign B',
+            'status' => 'draft',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $this->actingAs($finance)->postJson("/api/v1/admin/earn/campaigns/{$c1}/verify-payment", [
+            'received_minor' => 50000,
+            'payment_reference' => 'DEPOSIT-REF-999',
+        ])->assertOk();
+
+        // Duplicate payment reference for campaign 2 must fail validation (422)
+        $this->actingAs($finance)->postJson("/api/v1/admin/earn/campaigns/{$c2}/verify-payment", [
+            'received_minor' => 70000,
+            'payment_reference' => 'DEPOSIT-REF-999',
+        ])->assertUnprocessable();
+    }
+
+    public function test_duplicate_transfer_reference_on_withdrawal_is_rejected(): void
+    {
+        $user = $this->actor('user');
+        $finance = $this->actor('finance');
+        $this->wallet($user, 0, 1200);
+
+        $w1 = DB::table('earning_withdrawals')->insertGetId([
+            'user_id' => $user->id,
+            'amount_minor' => 600,
+            'method' => 'bank',
+            'beneficiary_encrypted' => encrypt('test-bank-1'),
+            'status' => 'requested',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        $w2 = DB::table('earning_withdrawals')->insertGetId([
+            'user_id' => $user->id,
+            'amount_minor' => 600,
+            'method' => 'bank',
+            'beneficiary_encrypted' => encrypt('test-bank-2'),
+            'status' => 'requested',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $this->actingAs($finance)->postJson("/api/v1/admin/earn/withdrawals/{$w1}/transfer", [
+            'transfer_reference' => 'TRX-PAYOUT-UNIQUE-001',
+        ])->assertOk();
+
+        // Attempting to reuse TRX-PAYOUT-UNIQUE-001 on w2 must be rejected with 422
+        $this->actingAs($finance)->postJson("/api/v1/admin/earn/withdrawals/{$w2}/transfer", [
+            'transfer_reference' => 'TRX-PAYOUT-UNIQUE-001',
+        ])->assertUnprocessable();
+    }
 }

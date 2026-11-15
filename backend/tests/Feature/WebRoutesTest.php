@@ -88,7 +88,10 @@ class WebRoutesTest extends TestCase
 
     public function test_sell_page_loads(): void
     {
-        $this->get('/sell')->assertStatus(200)->assertSee('POST YOUR AD');
+        $this->get('/sell')->assertRedirect('/login');
+
+        $seller = User::first();
+        $this->actingAs($seller)->get('/sell')->assertStatus(200)->assertSee('POST YOUR AD');
     }
 
     public function test_search_and_category_pages_load(): void

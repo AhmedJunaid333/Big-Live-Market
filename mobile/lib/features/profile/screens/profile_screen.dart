@@ -6,6 +6,8 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/nebula_glass_widgets.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../auth/screens/login_screen.dart';
+import '../../earn/models/earning_models.dart';
+import '../../earn/widgets/withdrawal_bottom_sheet.dart';
 import '../../listings/screens/favorites_screen.dart';
 import '../../listings/screens/my_listings_screen.dart';
 import 'devices_screen.dart';
@@ -13,11 +15,47 @@ import 'edit_profile_screen.dart';
 import 'paid_ad_promotion_screen.dart';
 import 'verification_screen.dart';
 
-class ProfileScreen extends ConsumerWidget {
+class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends ConsumerState<ProfileScreen> {
+  int _availableMinor = 125000; // PKR 1,250.00 initial balance
+  int _heldMinor = 0;
+  final List<WithdrawalHistoryItem> _withdrawals = [];
+
+  void _openWithdrawalSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => WithdrawalBottomSheet(
+        availableMinor: _availableMinor,
+        onWithdraw: (amountMinor, method, beneficiary, idempotencyKey) {
+          setState(() {
+            _availableMinor -= amountMinor;
+            _heldMinor += amountMinor;
+            _withdrawals.insert(
+              0,
+              WithdrawalHistoryItem(
+                id: DateTime.now().millisecondsSinceEpoch,
+                amountMinor: amountMinor,
+                method: method,
+                status: 'requested',
+                date: 'Just now',
+              ),
+            );
+          });
+        },
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
     final lang = ref.watch(languageProvider);
 
@@ -101,49 +139,37 @@ class ProfileScreen extends ConsumerWidget {
           120, // Clear floating bottom tab bar
         ),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             NebulaGlassCard(
-              padding: const EdgeInsets.all(AppTheme.cardPadding),
-              borderRadius: AppTheme.radius2Xl,
+              padding: const EdgeInsets.all(28),
               child: Column(
-                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Container(
-                    width: 72,
-                    height: 72,
-                    decoration: BoxDecoration(
-                      color: AppTheme.surfaceGlass,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: AppTheme.borderHairline),
-                    ),
-                    padding: const EdgeInsets.all(10),
-                    child: Image.asset(
-                      'assets/icons/app_logo_mark.png',
-                      fit: BoxFit.contain,
-                    ),
+                  const Icon(
+                    Icons.account_circle_outlined,
+                    size: 72,
+                    color: AppTheme.primaryLavender,
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 16),
                   Text(
-                    'Log in to your account',
+                    'Welcome to Big Live',
                     style: AppTheme.headlineMd.copyWith(
-                      fontWeight: FontWeight.w700,
                       color: AppTheme.onSurface,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Manage your listings, bookmark favorites, and chat with buyers in real time.',
+                    'Sign in to post advertisements, manage orders, view favorites, and access your earning wallet.',
                     textAlign: TextAlign.center,
-                    style: AppTheme.bodySm.copyWith(
-                      color: AppTheme.onSurfaceVariant,
-                      height: 1.5,
-                    ),
+                    style: AppTheme.bodySm.copyWith(color: AppTheme.onSurfaceVariant),
                   ),
                   const SizedBox(height: 24),
                   NebulaButtonPrimary(
-                    label: 'Sign In / Register',
+                    label: AppStrings.signIn,
                     onPressed: () {
-                      Navigator.of(context).push(
+                      Navigator.push(
+                        context,
                         MaterialPageRoute(builder: (_) => const LoginScreen()),
                       );
                     },
@@ -152,9 +178,8 @@ class ProfileScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 16),
-            // Quick guest options
             NebulaGlassCard(
-              padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 16),
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
               child: Column(
                 children: [
                   _buildMenuRow(
@@ -356,7 +381,136 @@ class ProfileScreen extends ConsumerWidget {
           ),
         ),
 
-        const SizedBox(height: 16),
+        const SizedBox(height: 14),
+
+        // Sponsored Earning Wallet Card (Profile Adjustment for Earning)
+        NebulaGlassCard(
+          padding: const EdgeInsets.all(16),
+          borderRadius: 20,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF34D399).withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(
+                          Icons.account_balance_wallet_rounded,
+                          color: Color(0xFF34D399),
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      const Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Earning Wallet (میری کمائی)',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white,
+                            ),
+                          ),
+                          Text(
+                            'Sponsored missions & task rewards',
+                            style: TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  NebulaBadgePill(
+                    text: 'ACTIVE',
+                    tone: NebulaBadgeTone.mint,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0F172A).withValues(alpha: 0.6),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: const Color(0xFF1E293B)),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Available Balance (دستیاب رقم)',
+                          style: TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'PKR ${(_availableMinor / 100.0).toStringAsFixed(0)}',
+                          style: const TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w900,
+                            color: Color(0xFF34D399),
+                            letterSpacing: -0.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (_heldMinor > 0)
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          const Text(
+                            'In Review (زیر التواء)',
+                            style: TextStyle(fontSize: 11, color: Color(0xFFFBBF24)),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'PKR ${(_heldMinor / 100.0).toStringAsFixed(0)}',
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFFFBBF24),
+                            ),
+                          ),
+                        ],
+                      ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: _openWithdrawalSheet,
+                      icon: const Icon(Icons.outbox_rounded, size: 16),
+                      label: const Text(
+                        'Withdraw (رقم نکلوائیں)',
+                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF059669),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 11),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 14),
 
         // Quick Stats Tiles
         Row(
@@ -455,6 +609,14 @@ class ProfileScreen extends ConsumerWidget {
                     MaterialPageRoute(builder: (_) => const EditProfileScreen()),
                   );
                 },
+              ),
+              const Divider(color: AppTheme.borderHairline),
+              _buildMenuRow(
+                icon: Icons.account_balance_wallet_rounded,
+                accentColor: const Color(0xFF34D399),
+                title: 'Earning Wallet & Payouts (کمائی اور کیش آؤٹ)',
+                subtitle: 'JazzCash, Easypaisa, and Bank withdrawals',
+                onTap: _openWithdrawalSheet,
               ),
               const Divider(color: AppTheme.borderHairline),
               _buildMenuRow(
