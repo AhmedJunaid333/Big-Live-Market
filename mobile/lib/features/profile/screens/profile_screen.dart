@@ -496,13 +496,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                           ),
                         ),
                         const SizedBox(height: 8),
-                        Row(
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 6,
+                          crossAxisAlignment: WrapCrossAlignment.center,
                           children: [
                             NebulaBadgePill(
                               text: user.roles.isNotEmpty ? user.roles.first.toUpperCase() : 'BUYER',
                               tone: NebulaBadgeTone.mint,
                             ),
-                            const SizedBox(width: 8),
                             // Unique ID badge with 1-tap copy
                             GestureDetector(
                               onTap: () {
@@ -566,43 +568,45 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF34D399).withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: const Icon(
-                          Icons.account_balance_wallet_rounded,
-                          color: Color(0xFF34D399),
-                          size: 20,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      const Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Earning Wallet (میری کمائی)',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w800,
-                              color: Colors.white,
-                            ),
-                          ),
-                          Text(
-                            'Sponsored missions & task rewards',
-                            style: TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
-                          ),
-                        ],
-                      ),
-                    ],
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF34D399).withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(
+                      Icons.account_balance_wallet_rounded,
+                      color: Color(0xFF34D399),
+                      size: 20,
+                    ),
                   ),
-                  NebulaBadgePill(
+                  const SizedBox(width: 10),
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Earning Wallet (میری کمائی)',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        Text(
+                          'Sponsored missions & task rewards',
+                          style: TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  const NebulaBadgePill(
                     text: 'ACTIVE',
                     tone: NebulaBadgeTone.mint,
                   ),
@@ -743,16 +747,20 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             ),
                           ),
                           const SizedBox(height: 4),
-                          Text(
-                            'Active Ads',
-                            style: AppTheme.caption.copyWith(color: AppTheme.onSurfaceMuted),
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              'Active Ads',
+                              style: AppTheme.caption.copyWith(color: AppTheme.onSurfaceMuted),
+                              maxLines: 1,
+                            ),
                           ),
                         ],
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 8),
                 Expanded(
                   child: GestureDetector(
                     onTap: () {
@@ -762,7 +770,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       );
                     },
                     child: NebulaGlassCard(
-                      padding: const EdgeInsets.all(14),
+                      padding: const EdgeInsets.all(12),
                       child: Column(
                         children: [
                           Text(
@@ -772,21 +780,25 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             ),
                           ),
                           const SizedBox(height: 4),
-                          Text(
-                            'Favorites',
-                            style: AppTheme.caption.copyWith(color: AppTheme.onSurfaceMuted),
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              'Favorites',
+                              style: AppTheme.caption.copyWith(color: AppTheme.onSurfaceMuted),
+                              maxLines: 1,
+                            ),
                           ),
                         ],
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 8),
                 Expanded(
                   child: GestureDetector(
                     onTap: () => _showTrustScoreDialog(context, user),
                     child: NebulaGlassCard(
-                      padding: const EdgeInsets.all(14),
+                      padding: const EdgeInsets.all(12),
                       child: Column(
                         children: [
                           Text(
@@ -796,9 +808,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             ),
                           ),
                           const SizedBox(height: 4),
-                          Text(
-                            'Trust Score ★',
-                            style: AppTheme.caption.copyWith(color: AppTheme.onSurfaceMuted),
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              'Trust Score ★',
+                              style: AppTheme.caption.copyWith(color: AppTheme.onSurfaceMuted),
+                              maxLines: 1,
+                            ),
                           ),
                         ],
                       ),
