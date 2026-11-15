@@ -37,6 +37,7 @@ jobs:
 
       - name: Run Backend Tests with diagnostics
         run: |
+          set -o pipefail
           cd backend
           cp -n .env.example .env || true
           php artisan key:generate
