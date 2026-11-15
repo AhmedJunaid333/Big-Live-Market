@@ -83,6 +83,7 @@ class SponsoredEarningSecurityTest extends TestCase
             'amount_minor' => 501,
             'method' => 'jazzcash',
             'beneficiary' => '03001234567',
+            'idempotency_key' => 'withdrawal-test-001',
         ])->assertStatus(422);
 
         $this->assertDatabaseHas('earning_wallets', [
@@ -102,6 +103,7 @@ class SponsoredEarningSecurityTest extends TestCase
             'amount_minor' => 600,
             'method' => 'easypaisa',
             'beneficiary' => '03001234567',
+            'idempotency_key' => 'withdrawal-test-001',
         ])->assertCreated();
 
         $this->assertDatabaseHas('earning_wallets', [
@@ -109,6 +111,26 @@ class SponsoredEarningSecurityTest extends TestCase
             'available_minor' => 400,
             'held_minor' => 600,
         ]);
+        $this->assertDatabaseCount('earning_ledger_entries', 1);
+    }
+
+    public function test_retrying_same_withdrawal_key_does_not_hold_funds_twice(): void
+    {
+        $user = $this->actor('buyer');
+        $this->wallet($user, 2000);
+        $payload = [
+            'amount_minor' => 600, 'method' => 'jazzcash',
+            'beneficiary' => '03001234567', 'idempotency_key' => 'retry-safe-001',
+        ];
+        $this->actingAs($user)->postJson('/api/v1/earn/withdrawals', $payload)->assertCreated();
+        $this->actingAs($user)->postJson('/api/v1/earn/withdrawals', $payload)->assertOk();
+        $this->actingAs($user)->postJson('/api/v1/earn/withdrawals', [
+            ...$payload, 'amount_minor' => 700,
+        ])->assertStatus(409);
+        $this->assertDatabaseHas('earning_wallets', [
+            'user_id' => $user->id, 'available_minor' => 1400, 'held_minor' => 600,
+        ]);
+        $this->assertDatabaseCount('earning_withdrawals', 1);
         $this->assertDatabaseCount('earning_ledger_entries', 1);
     }
 
