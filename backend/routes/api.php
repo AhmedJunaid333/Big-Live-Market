@@ -130,6 +130,7 @@ Route::prefix('v1')->group(function () {
         Route::post('/earn/tasks/{task}/submissions', [\App\Http\Controllers\Api\SponsoredEarnController::class, 'submit']);
         Route::get('/earn/wallet', [\App\Http\Controllers\Api\SponsoredEarnController::class, 'wallet']);
         Route::post('/earn/withdrawals', [\App\Http\Controllers\Api\SponsoredEarnController::class, 'requestWithdrawal']);
+        Route::post('/earn/withdrawals/{withdrawal}/cancel', [\App\Http\Controllers\Api\SponsoredEarnController::class, 'cancelWithdrawal']);
         Route::post('/admin/earn/campaigns', [\App\Http\Controllers\Api\SponsoredEarnController::class, 'createCampaign']);
         Route::post('/admin/earn/campaigns/{campaign}/verify-payment', [\App\Http\Controllers\Api\SponsoredEarnController::class, 'verifyPayment']);
 
