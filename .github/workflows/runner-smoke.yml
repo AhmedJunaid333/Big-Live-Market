@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - fix/auth-and-real-listings-20261115
+      - fix/earn-audit-security-20261115
+  pull_request:
+    branches: [ main, master ]
   workflow_dispatch:
 
 permissions:
