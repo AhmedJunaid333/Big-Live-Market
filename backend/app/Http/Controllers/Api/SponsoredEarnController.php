@@ -88,6 +88,35 @@ class SponsoredEarnController extends Controller
         return response()->json(['data'=>['id'=>$withdrawal,'status'=>'requested'],'message'=>'Manual withdrawal review pending'],201);
     }
 
+    public function cancelWithdrawal(Request $request, int $withdrawal): JsonResponse
+    {
+        DB::transaction(function () use ($request, $withdrawal) {
+            $w = DB::table('earning_withdrawals')->where('id', $withdrawal)
+                ->where('user_id', $request->user()->id)->lockForUpdate()->first();
+            abort_unless($w, 404, 'Withdrawal not found');
+            abort_unless($w->status === 'requested', 409, 'Withdrawal can no longer be cancelled');
+
+            $wallet = DB::table('earning_wallets')->where('user_id', $w->user_id)
+                ->lockForUpdate()->first();
+            abort_unless($wallet && $wallet->held_minor >= $w->amount_minor, 422, 'Held balance mismatch');
+
+            DB::table('earning_ledger_entries')->insert([
+                'user_id' => $w->user_id, 'entry_type' => 'withdrawal_released',
+                'amount_minor' => $w->amount_minor, 'reference_type' => 'withdrawal',
+                'reference_id' => $w->id, 'created_at' => now(), 'updated_at' => now(),
+            ]);
+            DB::table('earning_wallets')->where('id', $wallet->id)->update([
+                'available_minor' => $wallet->available_minor + $w->amount_minor,
+                'held_minor' => $wallet->held_minor - $w->amount_minor, 'updated_at' => now(),
+            ]);
+            DB::table('earning_withdrawals')->where('id', $w->id)->update([
+                'status' => 'cancelled', 'updated_at' => now(),
+            ]);
+        }, 3);
+
+        return response()->json(['message' => 'Withdrawal cancelled; held funds released']);
+    }
+
     public function createCampaign(Request $request): JsonResponse
     {
         $this->requireRole($request,['admin','super_admin']);
