@@ -36,6 +36,9 @@ Route::prefix('v1')->group(function () {
     Route::get('/promotion-products', [\App\Http\Controllers\Api\BillingController::class, 'promotionProducts']);
     Route::post('/payments/{provider}/webhook', [\App\Http\Controllers\Api\BillingController::class, 'handleWebhook']);
 
+    // Sponsored earning missions are visible only for manually funded, enabled campaigns.
+    Route::get('/earn/missions', [\\App\\Http\\Controllers\\Api\\SponsoredEarnController::class, 'missions']);
+
     // Public business storefronts
     Route::get('/businesses/{slug}', [\App\Http\Controllers\Api\BusinessController::class, 'show']);
 
@@ -122,6 +125,13 @@ Route::prefix('v1')->group(function () {
         Route::post('/support/tickets', [\App\Http\Controllers\Api\SupportController::class, 'createTicket']);
         Route::get('/support/tickets/{ticket}', [\App\Http\Controllers\Api\SupportController::class, 'showTicket']);
         Route::post('/support/tickets/{ticket}/messages', [\App\Http\Controllers\Api\SupportController::class, 'sendMessage']);
+
+        // Earning balances and manual payout requests
+        Route::post('/earn/tasks/{task}/submissions', [\\App\\Http\\Controllers\\Api\\SponsoredEarnController::class, 'submit']);
+        Route::get('/earn/wallet', [\\App\\Http\\Controllers\\Api\\SponsoredEarnController::class, 'wallet']);
+        Route::post('/earn/withdrawals', [\\App\\Http\\Controllers\\Api\\SponsoredEarnController::class, 'requestWithdrawal']);
+        Route::post('/admin/earn/campaigns', [\\App\\Http\\Controllers\\Api\\SponsoredEarnController::class, 'createCampaign']);
+        Route::post('/admin/earn/campaigns/{campaign}/verify-payment', [\\App\\Http\\Controllers\\Api\\SponsoredEarnController::class, 'verifyPayment']);
 
         // Admin & Moderation (RBAC)
         Route::prefix('admin')->group(function () {
