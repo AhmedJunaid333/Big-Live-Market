@@ -112,6 +112,26 @@ class SponsoredEarningSecurityTest extends TestCase
         $this->assertDatabaseCount('earning_ledger_entries', 1);
     }
 
+    public function test_pending_withdrawal_can_be_cancelled_once_and_refunds_wallet(): void
+    {
+        $user = $this->actor('buyer');
+        $this->wallet($user, 400, 600);
+        $id = DB::table('earning_withdrawals')->insertGetId([
+            'user_id' => $user->id, 'amount_minor' => 600, 'method' => 'bank',
+            'beneficiary_encrypted' => encrypt('test-account'), 'status' => 'requested',
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+
+        $url = "/api/v1/earn/withdrawals/{$id}/cancel";
+        $this->actingAs($user)->postJson($url)->assertOk();
+        $this->actingAs($user)->postJson($url)->assertStatus(409);
+        $this->assertDatabaseHas('earning_wallets', [
+            'user_id' => $user->id, 'available_minor' => 1000, 'held_minor' => 0,
+        ]);
+        $this->assertDatabaseHas('earning_withdrawals', ['id' => $id, 'status' => 'cancelled']);
+        $this->assertDatabaseCount('earning_ledger_entries', 1);
+    }
+
     public function test_same_finance_officer_cannot_confirm_their_own_transfer(): void
     {
         $user = $this->actor('user');
