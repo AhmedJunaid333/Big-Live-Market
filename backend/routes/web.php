@@ -214,6 +214,6 @@ Route::get('/safety', function () {
 });
 
 // Sponsored earnings: browser-based administration, protected by session auth and role checks.
-Route::get('/admin/earn', [\\App\\Http\\Controllers\\Web\\EarnAdminDashboardController::class, 'index'])
+Route::get('/admin/earn', [\App\Http\Controllers\Web\EarnAdminDashboardController::class, 'index'])
     ->middleware('auth')
     ->name('admin.earn.dashboard');
