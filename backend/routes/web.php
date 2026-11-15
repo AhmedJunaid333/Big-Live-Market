@@ -221,6 +221,11 @@ Route::get('/admin/earn', [\App\Http\Controllers\Web\EarnAdminDashboardControlle
 Route::middleware('auth')->prefix('admin/earn')->name('admin.earn.')->group(function () {
     Route::get('/campaigns', [\App\Http\Controllers\Web\EarnAdminOperationsController::class, 'campaigns'])->name('campaigns');
     Route::post('/campaigns', [\App\Http\Controllers\Web\EarnAdminOperationsController::class, 'storeCampaign'])->name('campaigns.store')->middleware('throttle:10,1');
+    Route::post('/campaigns/{campaign}/verify', [\App\Http\Controllers\Web\EarnAdminOperationsController::class, 'verifyCampaign'])->name('campaigns.verify');
     Route::get('/submissions', [\App\Http\Controllers\Web\EarnAdminOperationsController::class, 'submissions'])->name('submissions');
+    Route::post('/submissions/{submission}/review', [\App\Http\Controllers\Web\EarnAdminOperationsController::class, 'reviewSubmission'])->name('submissions.review');
     Route::get('/withdrawals', [\App\Http\Controllers\Web\EarnAdminOperationsController::class, 'withdrawals'])->name('withdrawals');
+    Route::post('/withdrawals/{withdrawal}/transfer', [\App\Http\Controllers\Web\EarnAdminOperationsController::class, 'transferWithdrawal'])->name('withdrawals.transfer');
+    Route::post('/withdrawals/{withdrawal}/confirm', [\App\Http\Controllers\Web\EarnAdminOperationsController::class, 'confirmWithdrawal'])->name('withdrawals.confirm');
+    Route::post('/withdrawals/{withdrawal}/reject', [\App\Http\Controllers\Web\EarnAdminOperationsController::class, 'rejectWithdrawal'])->name('withdrawals.reject');
 });

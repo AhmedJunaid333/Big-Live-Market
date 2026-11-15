@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/earning_models.dart';
 
 class SponsoredMissionsSheet extends StatefulWidget {
-  final VoidCallback? onMissionCompleted;
+  final Function(SponsoredMission mission)? onMissionCompleted;
 
   const SponsoredMissionsSheet({super.key, this.onMissionCompleted});
 
@@ -73,7 +73,7 @@ class _SponsoredMissionsSheetState extends State<SponsoredMissionsSheet> {
       ),
     );
 
-    widget.onMissionCompleted?.call();
+    widget.onMissionCompleted?.call(mission);
   }
 
   @override

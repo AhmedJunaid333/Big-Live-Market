@@ -6,7 +6,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/nebula_glass_widgets.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../auth/screens/login_screen.dart';
-import '../../earn/models/earning_models.dart';
+import '../../earn/providers/earn_provider.dart';
 import '../../earn/widgets/withdrawal_bottom_sheet.dart';
 import '../../listings/screens/favorites_screen.dart';
 import '../../listings/screens/my_listings_screen.dart';
@@ -23,32 +23,20 @@ class ProfileScreen extends ConsumerStatefulWidget {
 }
 
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
-  int _availableMinor = 125000; // PKR 1,250.00 initial balance
-  int _heldMinor = 0;
-  final List<WithdrawalHistoryItem> _withdrawals = [];
-
-  void _openWithdrawalSheet() {
+  void _openWithdrawalSheet(int availableMinor) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => WithdrawalBottomSheet(
-        availableMinor: _availableMinor,
-        onWithdraw: (amountMinor, method, beneficiary, idempotencyKey) {
-          setState(() {
-            _availableMinor -= amountMinor;
-            _heldMinor += amountMinor;
-            _withdrawals.insert(
-              0,
-              WithdrawalHistoryItem(
-                id: DateTime.now().millisecondsSinceEpoch,
+        availableMinor: availableMinor,
+        onWithdraw: (amountMinor, method, beneficiary, idempotencyKey) async {
+          await ref.read(earnProvider.notifier).requestWithdrawal(
                 amountMinor: amountMinor,
                 method: method,
-                status: 'requested',
-                date: 'Just now',
-              ),
-            );
-          });
+                beneficiary: beneficiary,
+                idempotencyKey: idempotencyKey,
+              );
         },
       ),
     );
@@ -58,6 +46,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
     final lang = ref.watch(languageProvider);
+    final earnState = ref.watch(earnProvider);
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -119,7 +108,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               // Profile Content Body
               Expanded(
                 child: authState.isAuthenticated && authState.user != null
-                    ? _buildAuthenticatedProfile(context, ref, authState, lang)
+                    ? _buildAuthenticatedProfile(context, ref, authState, lang, earnState)
                     : _buildGuestProfile(context, ref, lang),
               ),
             ],
@@ -229,6 +218,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     WidgetRef ref,
     AuthState authState,
     AppLanguage lang,
+    EarnState earnState,
   ) {
     final user = authState.user!;
 
@@ -453,7 +443,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          'PKR ${(_availableMinor / 100.0).toStringAsFixed(0)}',
+                          'PKR ${(earnState.availableMinor / 100.0).toStringAsFixed(0)}',
                           style: const TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.w900,
@@ -463,7 +453,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         ),
                       ],
                     ),
-                    if (_heldMinor > 0)
+                    if (earnState.heldMinor > 0)
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
@@ -473,7 +463,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            'PKR ${(_heldMinor / 100.0).toStringAsFixed(0)}',
+                            'PKR ${(earnState.heldMinor / 100.0).toStringAsFixed(0)}',
                             style: const TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w700,
@@ -490,7 +480,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 children: [
                   Expanded(
                     child: ElevatedButton.icon(
-                      onPressed: _openWithdrawalSheet,
+                      onPressed: () => _openWithdrawalSheet(earnState.availableMinor),
                       icon: const Icon(Icons.outbox_rounded, size: 16),
                       label: const Text(
                         'Withdraw (رقم نکلوائیں)',
@@ -616,7 +606,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 accentColor: const Color(0xFF34D399),
                 title: 'Earning Wallet & Payouts (کمائی اور کیش آؤٹ)',
                 subtitle: 'JazzCash, Easypaisa, and Bank withdrawals',
-                onTap: _openWithdrawalSheet,
+                onTap: () => _openWithdrawalSheet(earnState.availableMinor),
               ),
               const Divider(color: AppTheme.borderHairline),
               _buildMenuRow(

@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/nebula_glass_widgets.dart';
+import '../../earn/providers/earn_provider.dart';
 import '../../earn/widgets/sponsored_missions_sheet.dart';
 import 'chat_detail_screen.dart';
 
-class ChatListScreen extends StatefulWidget {
+class ChatListScreen extends ConsumerStatefulWidget {
   const ChatListScreen({super.key});
 
   @override
-  State<ChatListScreen> createState() => _ChatListScreenState();
+  ConsumerState<ChatListScreen> createState() => _ChatListScreenState();
 }
 
-class _ChatListScreenState extends State<ChatListScreen> {
+class _ChatListScreenState extends ConsumerState<ChatListScreen> {
   final List<Map<String, dynamic>> _threads = [
     {
       'name': 'Big Live Rewards Official',
@@ -57,13 +59,14 @@ class _ChatListScreenState extends State<ChatListScreen> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => SponsoredMissionsSheet(
-        onMissionCompleted: () {
+        onMissionCompleted: (mission) {
+          ref.read(earnProvider.notifier).claimMissionReward(mission);
           setState(() {
             _threads.insert(0, {
               'name': 'Big Live Rewards Official',
               'item': 'Task Reward Verified',
-              'price': 'Instant Credit',
-              'lastMessage': '✅ Your task proof was approved! Funds available in Profile wallet.',
+              'price': 'Rs. ${mission.rewardPkr} Credited',
+              'lastMessage': '✅ Your task proof for "${mission.title}" was approved! PKR ${mission.rewardPkr} available in wallet.',
               'time': 'Just now',
               'unread': 1,
               'isSystem': true,
