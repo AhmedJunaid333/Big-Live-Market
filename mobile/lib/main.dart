@@ -38,28 +38,9 @@ final featuredListingsProvider = FutureProvider<List<dynamic>>((ref) async {
     final data = response.data['data'] as List<dynamic>?;
     return List<dynamic>.from(data ?? []);
   } catch (e) {
-    return [
-      {
-        'id': 2,
-        'title': 'Apple iPhone 15 Pro Max 256GB Titanium',
-        'price_minor': 43000000,
-        'currency': 'PKR',
-        'condition_code': 'new',
-        'location_label': 'Gulberg III, Lahore',
-        'is_featured': true,
-        'featured_plan': 'top_spotlight',
-      },
-      {
-        'id': 1,
-        'title': 'Toyota Corolla Altis Grande 1.8 2023',
-        'price_minor': 850000000,
-        'currency': 'PKR',
-        'condition_code': 'used',
-        'location_label': 'DHA Phase 5, Lahore',
-        'is_featured': true,
-        'featured_plan': 'featured_urgent',
-      },
-    ];
+    // Never present fabricated ads as real listings when the API is unavailable.
+    return <dynamic>[];
+
   }
 });
 
@@ -89,48 +70,8 @@ final listingsFeedProvider = FutureProvider<List<dynamic>>((ref) async {
     final data = response.data['data'] as List<dynamic>?;
     items = List<dynamic>.from(data ?? []);
   } catch (e) {
-    // Return sample offline listings filtered by category if applicable
-    final allOffline = [
-      {
-        'id': 1,
-        'category_id': 1,
-        'title': 'Honda Civic RS Turbo 2022 Low Mileage',
-        'description': 'First owner, bumper to bumper genuine, maintained through authorized dealership.',
-        'price_minor': 850000000,
-        'currency': 'PKR',
-        'condition_code': 'used',
-        'location_label': 'DHA Phase 5, Lahore',
-        'seller': {'name': 'Tariq Mehmood', 'phone_e164': '+923001234567'}
-      },
-      {
-        'id': 2,
-        'category_id': 3,
-        'title': 'Apple iPhone 15 Pro Max 256GB Natural Titanium',
-        'description': 'PTA approved, battery health 99%, complete original box and cable included.',
-        'price_minor': 43000000,
-        'currency': 'PKR',
-        'condition_code': 'used',
-        'location_label': 'Blue Area, Islamabad',
-        'seller': {'name': 'Apple Store PK', 'phone_e164': '+923337654321'}
-      },
-      {
-        'id': 3,
-        'category_id': 5,
-        'title': '1 Kanal Luxury Designer House for Sale',
-        'description': 'Spanish architecture, 5 master bedrooms, imported Italian fittings, lush lawn.',
-        'price_minor': 9500000000,
-        'currency': 'PKR',
-        'condition_code': 'new',
-        'location_label': 'Clifton Block 4, Karachi',
-        'seller': {'name': 'Prime Estates', 'phone_e164': '+923219876543'}
-      },
-    ];
-
-    if (categoryId != null) {
-      items = allOffline.where((item) => item['category_id'] == categoryId).toList();
-    } else {
-      items = List<dynamic>.from(allOffline);
-    }
+    // Preserve the API failure so the UI can show its existing error/retry state.
+    rethrow;
   }
 
   // Apply Condition Filter
