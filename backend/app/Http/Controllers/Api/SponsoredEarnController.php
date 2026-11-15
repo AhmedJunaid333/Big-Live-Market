@@ -65,9 +65,20 @@ class SponsoredEarnController extends Controller
             'amount_minor'=>['required','integer','min:100'],
             'method'=>['required',Rule::in(['jazzcash','easypaisa','bank'])],
             'beneficiary'=>['required','string','min:5','max:500'],
+            'idempotency_key'=>['required','string','min:8','max:100','regex:/^[A-Za-z0-9_-]+$/'],
         ]);
         $withdrawal = DB::transaction(function () use ($request,$data) {
             $wallet = DB::table('earning_wallets')->where('user_id',$request->user()->id)->lockForUpdate()->first();
+            abort_unless($wallet, 422, 'Earning wallet not found');
+            $existing = DB::table('earning_withdrawals')->where('user_id', $request->user()->id)
+                ->where('idempotency_key', $data['idempotency_key'])->first();
+            if ($existing) {
+                abort_unless((int) $existing->amount_minor === (int) $data['amount_minor']
+                    && $existing->method === $data['method']
+                    && Crypt::decryptString($existing->beneficiary_encrypted) === $data['beneficiary'],
+                    409, 'Idempotency key already used for another withdrawal');
+                return ['id' => $existing->id, 'status' => $existing->status, 'replayed' => true];
+            }
             abort_unless($wallet && $wallet->available_minor >= $data['amount_minor'],422,'Insufficient available earnings');
             DB::table('earning_wallets')->where('id',$wallet->id)->update([
                 'available_minor'=>$wallet->available_minor-$data['amount_minor'],
@@ -76,6 +87,7 @@ class SponsoredEarnController extends Controller
             $id = DB::table('earning_withdrawals')->insertGetId([
                 'user_id'=>$request->user()->id,'amount_minor'=>$data['amount_minor'],
                 'method'=>$data['method'],'beneficiary_encrypted'=>Crypt::encryptString($data['beneficiary']),
+                'idempotency_key'=>$data['idempotency_key'],
                 'status'=>'requested','created_at'=>now(),'updated_at'=>now(),
             ]);
             DB::table('earning_ledger_entries')->insert([
@@ -83,9 +95,11 @@ class SponsoredEarnController extends Controller
                 'amount_minor'=>-$data['amount_minor'],'reference_type'=>'withdrawal',
                 'reference_id'=>$id,'created_at'=>now(),'updated_at'=>now(),
             ]);
-            return $id;
-        });
-        return response()->json(['data'=>['id'=>$withdrawal,'status'=>'requested'],'message'=>'Manual withdrawal review pending'],201);
+            return ['id' => $id, 'status' => 'requested', 'replayed' => false];
+        }, 3);
+        return response()->json(['data'=>['id'=>$withdrawal['id'],'status'=>$withdrawal['status']],
+            'message'=>$withdrawal['replayed'] ? 'Existing withdrawal returned' : 'Manual withdrawal review pending'],
+            $withdrawal['replayed'] ? 200 : 201);
     }
 
     public function cancelWithdrawal(Request $request, int $withdrawal): JsonResponse
