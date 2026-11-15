@@ -31,5 +31,23 @@ jobs:
         run: |
           cp .env.example .env
           php artisan key:generate
+      - name: Check PHP syntax of earning controllers and tests
+        run: |
+          php -l app/Http/Controllers/Api/SponsoredEarnController.php
+          php -l app/Http/Controllers/Api/SponsoredEarnAdminController.php
+          php -l tests/Feature/SponsoredEarningSecurityTest.php
+          php artisan route:list --path=api/v1/earn
       - name: Run four sponsored earnings security tests
-        run: php artisan test --filter=SponsoredEarningSecurityTest
+        run: php artisan test --filter=SponsoredEarningSecurityTest --display-errors --display-warnings --testdox
+      - name: Save test diagnostics
+        if: always()
+        run: |
+          php -v > sponsored-earn-diagnostics.txt
+          php artisan about --only=environment >> sponsored-earn-diagnostics.txt 2>&1 || true
+          php artisan test --filter=SponsoredEarningSecurityTest --testdox >> sponsored-earn-diagnostics.txt 2>&1 || true
+      - name: Upload diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sponsored-earn-diagnostics
+          path: backend/sponsored-earn-diagnostics.txt
