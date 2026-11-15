@@ -39,7 +39,11 @@ class SponsoredEarnController extends Controller
         $active = DB::table('sponsored_tasks as t')
             ->join('sponsored_campaigns as c','c.id','=','t.campaign_id')
             ->where('t.id',$task)->where('t.status','active')->where('c.status','active')
-            ->whereNotNull('c.payment_verified_at')->exists();
+            ->whereNotNull('c.payment_verified_at')
+            ->whereColumn('t.approved_count', '<', 't.max_participants')
+            ->where(function ($q) { $q->whereNull('c.starts_at')->orWhere('c.starts_at', '<=', now()); })
+            ->where(function ($q) { $q->whereNull('c.ends_at')->orWhere('c.ends_at', '>=', now()); })
+            ->exists();
         abort_unless($active, 422, 'Task is not available');
         $id = DB::table('sponsored_task_submissions')->insertOrIgnore([
             'task_id'=>$task,'user_id'=>$request->user()->id,'proof'=>$data['proof'],
