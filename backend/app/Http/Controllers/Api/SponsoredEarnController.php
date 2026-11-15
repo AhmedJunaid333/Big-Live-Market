@@ -40,6 +40,7 @@ class SponsoredEarnController extends Controller
             ->join('sponsored_campaigns as c','c.id','=','t.campaign_id')
             ->where('t.id',$task)->where('t.status','active')->where('c.status','active')
             ->whereNotNull('c.payment_verified_at')
+            ->whereRaw('c.received_minor >= c.reserved_minor + c.spent_minor')
             ->whereColumn('t.approved_count', '<', 't.max_participants')
             ->where(function ($q) { $q->whereNull('c.starts_at')->orWhere('c.starts_at', '<=', now()); })
             ->where(function ($q) { $q->whereNull('c.ends_at')->orWhere('c.ends_at', '>=', now()); })
