@@ -133,6 +133,13 @@ Route::prefix('v1')->group(function () {
         Route::post('/admin/earn/campaigns', [\\App\\Http\\Controllers\\Api\\SponsoredEarnController::class, 'createCampaign']);
         Route::post('/admin/earn/campaigns/{campaign}/verify-payment', [\\App\\Http\\Controllers\\Api\\SponsoredEarnController::class, 'verifyPayment']);
 
+        Route::post('/admin/earn/campaigns/{campaign}/tasks', [\App\Http\Controllers\Api\SponsoredEarnAdminController::class, 'createTask']);
+        Route::patch('/admin/earn/campaigns/{campaign}/state', [\App\Http\Controllers\Api\SponsoredEarnAdminController::class, 'setCampaignState']);
+        Route::patch('/admin/earn/tasks/{task}/state', [\App\Http\Controllers\Api\SponsoredEarnAdminController::class, 'setTaskState']);
+        Route::post('/admin/earn/submissions/{submission}/review', [\App\Http\Controllers\Api\SponsoredEarnAdminController::class, 'reviewSubmission']);
+        Route::post('/admin/earn/withdrawals/{withdrawal}/transfer', [\App\Http\Controllers\Api\SponsoredEarnAdminController::class, 'markTransferred']);
+        Route::post('/admin/earn/withdrawals/{withdrawal}/confirm', [\App\Http\Controllers\Api\SponsoredEarnAdminController::class, 'confirmTransfer']);
+
         // Admin & Moderation (RBAC)
         Route::prefix('admin')->group(function () {
             Route::get('/dashboard', [\App\Http\Controllers\Api\AdminController::class, 'dashboard']);
