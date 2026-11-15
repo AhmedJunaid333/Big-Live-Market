@@ -51,4 +51,19 @@ class EarnAdminOperationsController extends Controller
                 ->paginate(30),
         ]);
     }
+    public function submissions(Request $request): View
+    {
+        abort_unless($request->user()?->hasAnyRole(['admin', 'super_admin']), 403);
+        return view('admin.earn.submissions', [
+            'submissions' => DB::table('sponsored_task_submissions as s')
+                ->join('sponsored_tasks as t', 't.id', '=', 's.task_id')
+                ->join('sponsored_campaigns as c', 'c.id', '=', 't.campaign_id')
+                ->select('s.id', 's.user_id', 's.proof', 's.created_at', 't.title as task_title',
+                    't.reward_minor', 'c.company_name', 'c.currency')
+                ->where('s.status', 'pending')
+                ->orderBy('s.id')
+                ->paginate(30),
+        ]);
+    }
+
 }
