@@ -138,6 +138,7 @@ Route::prefix('v1')->group(function () {
         Route::patch('/admin/earn/campaigns/{campaign}/state', [\App\Http\Controllers\Api\SponsoredEarnAdminController::class, 'setCampaignState']);
         Route::patch('/admin/earn/tasks/{task}/state', [\App\Http\Controllers\Api\SponsoredEarnAdminController::class, 'setTaskState']);
         Route::post('/admin/earn/submissions/{submission}/review', [\App\Http\Controllers\Api\SponsoredEarnAdminController::class, 'reviewSubmission']);
+        Route::post('/admin/earn/withdrawals/{withdrawal}/reject', [\App\Http\Controllers\Api\SponsoredEarnAdminController::class, 'rejectWithdrawal']);
         Route::post('/admin/earn/withdrawals/{withdrawal}/transfer', [\App\Http\Controllers\Api\SponsoredEarnAdminController::class, 'markTransferred']);
         Route::post('/admin/earn/withdrawals/{withdrawal}/confirm', [\App\Http\Controllers\Api\SponsoredEarnAdminController::class, 'confirmTransfer']);
 
