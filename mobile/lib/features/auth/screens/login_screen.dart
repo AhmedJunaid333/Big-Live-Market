@@ -101,11 +101,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     children: [
                       // Header
                       Center(
-                        child: TintedIconBubble(
-                          icon: Icons.lock_open_rounded,
-                          accentColor: AppTheme.primaryLavender,
-                          size: 56,
-                          iconSize: 28,
+                        child: Image.asset(
+                          'assets/icons/app_logo.png',
+                          height: 96,
+                          fit: BoxFit.contain,
                         ),
                       ),
                       const SizedBox(height: 16),

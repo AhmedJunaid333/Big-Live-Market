@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/nebula_glass_widgets.dart';
 import '../../../main.dart';
+import '../models/category_taxonomy.dart';
 import 'category_listings_screen.dart';
+import 'subcategories_screen.dart';
 
 final dynamicCategoriesProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
   final client = ref.watch(apiClientProvider);
@@ -11,37 +13,15 @@ final dynamicCategoriesProvider = FutureProvider<List<Map<String, dynamic>>>((re
     final response = await client.dio.get('/categories');
     final data = response.data['data'] as List<dynamic>?;
     if (data != null && data.isNotEmpty) {
-      final colorPalette = [
-        AppTheme.accentPink,
-        AppTheme.accentMint,
-        AppTheme.accentBlue,
-        AppTheme.accentIndigo,
-        AppTheme.accentRose,
-        AppTheme.accentAmber,
-        AppTheme.primaryLavender,
-        AppTheme.secondaryMint,
-      ];
-
-      final iconMap = <String, IconData>{
-        'motors': Icons.directions_car_filled_rounded,
-        'mobile-phones': Icons.smartphone_rounded,
-        'property': Icons.apartment_rounded,
-        'electronics-appliances': Icons.devices_other_rounded,
-      };
-
-      return data.asMap().entries.map((entry) {
-        final i = entry.key;
-        final item = entry.value as Map<String, dynamic>;
-        final slug = item['slug']?.toString() ?? '';
-        final id = (item['id'] ?? (i + 1)) as int;
-        final name = item['name']?.toString() ?? 'Category';
-
+      return data.map((item) {
+        final id = item['id'] as int;
+        final matched = CategoryTaxonomy.getCategoryById(id);
         return {
           'id': id,
-          'name': name,
-          'icon': iconMap[slug] ?? Icons.category_rounded,
-          'count': '${item['children']?.length ?? 1} Subcategories',
-          'color': colorPalette[i % colorPalette.length],
+          'name': item['name']?.toString() ?? matched.name,
+          'icon': matched.icon,
+          'count': '${item['children']?.length ?? matched.subcategories.length} Subcategories',
+          'color': matched.tint,
         };
       }).toList();
     }
@@ -52,64 +32,15 @@ final dynamicCategoriesProvider = FutureProvider<List<Map<String, dynamic>>>((re
 class CategoriesScreen extends ConsumerWidget {
   const CategoriesScreen({super.key});
 
-  static const List<Map<String, dynamic>> defaultCategories = [
-    {
-      'id': 1,
-      'name': 'Motors & Cars',
-      'icon': Icons.directions_car_filled_rounded,
-      'count': 'Cars & Vehicles',
-      'color': AppTheme.accentPink,
-    },
-    {
-      'id': 3,
-      'name': 'Mobile Phones',
-      'icon': Icons.smartphone_rounded,
-      'count': 'Smartphones & Tabs',
-      'color': AppTheme.accentMint,
-    },
-    {
-      'id': 5,
-      'name': 'Luxury Property',
-      'icon': Icons.apartment_rounded,
-      'count': 'Houses & Commercial',
-      'color': AppTheme.accentBlue,
-    },
-    {
-      'id': 6,
-      'name': 'Electronics & Tech',
-      'icon': Icons.devices_other_rounded,
-      'count': 'Gadgets & Home Tech',
-      'color': AppTheme.accentIndigo,
-    },
-    {
-      'id': 7,
-      'name': 'Bikes & Cycles',
-      'icon': Icons.two_wheeler_rounded,
-      'count': 'Motorcycles & Scooters',
-      'color': AppTheme.accentRose,
-    },
-    {
-      'id': 8,
-      'name': 'Watches & Jewels',
-      'icon': Icons.watch_rounded,
-      'count': 'Luxury Timepieces',
-      'color': AppTheme.accentAmber,
-    },
-    {
-      'id': 9,
-      'name': 'Home & Furniture',
-      'icon': Icons.chair_rounded,
-      'count': 'Interior & Decor',
-      'color': AppTheme.primaryLavender,
-    },
-    {
-      'id': 10,
-      'name': 'Jobs & Services',
-      'icon': Icons.business_center_rounded,
-      'count': 'Professional Services',
-      'color': AppTheme.secondaryMint,
-    },
-  ];
+  static List<Map<String, dynamic>> get defaultCategories => CategoryTaxonomy.allCategories.map((c) {
+    return {
+      'id': c.id,
+      'name': c.name,
+      'icon': c.icon,
+      'count': '${c.subcategories.length} Subcategories',
+      'color': c.tint,
+    };
+  }).toList();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -170,66 +101,76 @@ class CategoriesScreen extends ConsumerWidget {
                     crossAxisCount: 2,
                     crossAxisSpacing: 14,
                     mainAxisSpacing: 14,
-                    childAspectRatio: 0.84,
+                    childAspectRatio: 0.88,
                   ),
                   itemCount: categories.length,
                   itemBuilder: (context, index) {
                     final cat = categories[index];
                     final color = cat['color'] as Color;
+                    final catId = (cat['id'] ?? 1) as int;
+                    final matched = CategoryTaxonomy.getCategoryById(catId);
 
                     return RepaintBoundary(
                       child: NebulaGlassCard(
                         borderRadius: AppTheme.radius2Xl,
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                         onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => CategoryListingsScreen(
-                                categoryId: (cat['id'] ?? 1) as int,
-                                categoryName: cat['name'] as String,
-                                icon: cat['icon'] as IconData,
-                                accentColor: color,
+                          if (matched.subcategories.isNotEmpty) {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => SubcategoriesScreen(category: matched),
                               ),
-                            ),
-                          );
+                            );
+                          } else {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => CategoryListingsScreen(
+                                  categoryId: catId,
+                                  categoryName: cat['name'] as String,
+                                  icon: cat['icon'] as IconData,
+                                  accentColor: color,
+                                ),
+                              ),
+                            );
+                          }
                         },
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          TintedIconBubble(
-                            icon: cat['icon'] as IconData,
-                            accentColor: color,
-                            size: 46,
-                            iconSize: 24,
-                          ),
-                          const SizedBox(height: 10),
-                          Flexible(
-                            child: Text(
-                              cat['name'] as String,
-                              textAlign: TextAlign.center,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: AppTheme.bodyMd.copyWith(
-                                fontWeight: FontWeight.w700,
-                                fontSize: 13,
-                                height: 1.25,
-                                color: AppTheme.onSurface,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            TintedIconBubble(
+                              icon: cat['icon'] as IconData,
+                              accentColor: color,
+                              size: 46,
+                              iconSize: 24,
+                            ),
+                            const SizedBox(height: 10),
+                            Flexible(
+                              child: Text(
+                                cat['name'] as String,
+                                textAlign: TextAlign.center,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: AppTheme.bodyMd.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 13,
+                                  height: 1.25,
+                                  color: AppTheme.onSurface,
+                                ),
                               ),
                             ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            cat['count'] as String,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: AppTheme.caption.copyWith(
-                              color: AppTheme.onSurfaceMuted,
+                            const SizedBox(height: 4),
+                            Text(
+                              cat['count'] as String,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: AppTheme.caption.copyWith(
+                                color: AppTheme.onSurfaceMuted,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                  );
+                    );
                   },
                 ),
               ),

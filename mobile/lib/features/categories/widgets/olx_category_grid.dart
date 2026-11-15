@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../models/category_taxonomy.dart';
 import '../screens/category_listings_screen.dart';
+import '../screens/subcategories_screen.dart';
 
 /// OLX-style visual category model with 3D luxury image asset support
 class CategoryButtonItem {
@@ -51,7 +53,7 @@ class OlxCategoryGrid extends ConsumerWidget {
       imageAsset: 'assets/icons/cat_property_sale.png',
     ),
     CategoryButtonItem(
-      id: 5,
+      id: 12,
       label: 'Property\nfor Rent',
       icon: Icons.vpn_key_rounded,
       tint: Color(0xFF38BDF8), // Blue Key
@@ -147,17 +149,40 @@ class OlxCategoryGrid extends ConsumerWidget {
   }
 
   void _navigateToCategory(BuildContext context, CategoryButtonItem cat) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => CategoryListingsScreen(
-          categoryId: cat.id,
-          categoryName: cat.label.replaceAll('\n', ' '),
-          icon: cat.icon,
-          accentColor: cat.tint,
-        ),
+    final matchedCategory = CategoryTaxonomy.allCategories.firstWhere(
+      (c) => c.id == cat.id,
+      orElse: () => MainCategoryItem(
+        id: cat.id,
+        slug: cat.label.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '-'),
+        name: cat.label.replaceAll('\n', ' '),
+        icon: cat.icon,
+        tint: cat.tint,
+        imageAsset: cat.imageAsset,
+        subtitle: cat.subtitle,
+        subcategories: const [],
       ),
     );
+
+    if (matchedCategory.subcategories.isNotEmpty) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => SubcategoriesScreen(category: matchedCategory),
+        ),
+      );
+    } else {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => CategoryListingsScreen(
+            categoryId: cat.id,
+            categoryName: cat.label.replaceAll('\n', ' '),
+            icon: cat.icon,
+            accentColor: cat.tint,
+          ),
+        ),
+      );
+    }
   }
 }
 
@@ -203,28 +228,35 @@ class _CategoryTileState extends State<_CategoryTile> {
               Container(
                 width: 56,
                 height: 56,
+                padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF191E2B),
-                  borderRadius: BorderRadius.circular(14),
+                  gradient: const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Color(0xFF222B3D),
+                      Color(0xFF141923),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(15),
                   border: Border.all(
-                    color: const Color(0xFF2B3245),
+                    color: const Color(0xFF2E384D),
                     width: 1.0,
                   ),
                   boxShadow: const [
                     BoxShadow(
-                      color: Color(0x33000000),
+                      color: Color(0x44000000),
                       blurRadius: 6,
                       offset: Offset(0, 2),
                     ),
                   ],
                 ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(13),
+                child: Center(
                   child: Image.asset(
                     cat.imageAsset,
-                    width: 56,
-                    height: 56,
-                    fit: BoxFit.cover,
+                    width: 44,
+                    height: 44,
+                    fit: BoxFit.contain,
                     errorBuilder: (_, __, ___) => _buildVectorIcon(cat),
                   ),
                 ),

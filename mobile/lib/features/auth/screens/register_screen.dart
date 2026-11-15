@@ -105,11 +105,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        const Center(
-                          child: TintedIconBubble(
-                            icon: Icons.person_add_alt_1_rounded,
-                            tint: AppTheme.accentCyan,
-                            size: 60,
+                        Center(
+                          child: Image.asset(
+                            'assets/icons/app_logo.png',
+                            height: 96,
+                            fit: BoxFit.contain,
                           ),
                         ),
                         const SizedBox(height: 16),

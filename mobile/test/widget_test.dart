@@ -14,9 +14,9 @@ void main() {
       ),
     );
 
-    // Allow splash timer to complete and advance frame
-    await tester.pump(const Duration(milliseconds: 3000));
-    await tester.pump(const Duration(milliseconds: 500));
+    // Allow splash animation (4600ms) to complete and advance frame
+    await tester.pump(const Duration(milliseconds: 5000));
+    await tester.pump(const Duration(milliseconds: 1000));
 
     expect(find.text('Big Live'), findsWidgets);
     expect(find.text('Motors'), findsOneWidget);

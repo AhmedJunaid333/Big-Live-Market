@@ -1,0 +1,14 @@
+# Root temporary captures and device screenshots
+/*.png
+/*.jpg
+/*.jpeg
+/centered_icons/
+/clean_transparent_icons/
+/processed_icons/
+
+# Editors & OS
+.idea/
+.vscode/
+*.log
+.DS_Store
+Thumbs.db

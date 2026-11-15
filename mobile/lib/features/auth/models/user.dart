@@ -8,6 +8,7 @@ class User {
   final String locale;
   final String preferredCurrency;
   final List<String> roles;
+  final String? avatarPath;
 
   User({
     required this.id,
@@ -19,9 +20,39 @@ class User {
     required this.locale,
     required this.preferredCurrency,
     this.roles = const [],
+    this.avatarPath,
   });
 
-  factory User.fromJson(Map<String, dynamic> json) {
+  /// Unique formatted Account ID for user fetching & support
+  String get uniqueCode => 'BLM-${id.toString().padLeft(5, '0')}';
+
+  User copyWith({
+    int? id,
+    String? uuid,
+    String? name,
+    String? email,
+    String? phoneE164,
+    String? status,
+    String? locale,
+    String? preferredCurrency,
+    List<String>? roles,
+    String? avatarPath,
+  }) {
+    return User(
+      id: id ?? this.id,
+      uuid: uuid ?? this.uuid,
+      name: name ?? this.name,
+      email: email ?? this.email,
+      phoneE164: phoneE164 ?? this.phoneE164,
+      status: status ?? this.status,
+      locale: locale ?? this.locale,
+      preferredCurrency: preferredCurrency ?? this.preferredCurrency,
+      roles: roles ?? this.roles,
+      avatarPath: avatarPath ?? this.avatarPath,
+    );
+  }
+
+  factory User.fromJson(Map<String, dynamic> json, {String? localAvatarPath}) {
     final rolesList = (json['roles'] as List<dynamic>?)
             ?.map((r) => r is Map<String, dynamic> ? (r['name']?.toString() ?? '') : r.toString())
             .toList() ??
@@ -37,6 +68,7 @@ class User {
       locale: json['locale']?.toString() ?? 'en',
       preferredCurrency: json['preferred_currency']?.toString() ?? 'PKR',
       roles: rolesList,
+      avatarPath: localAvatarPath ?? json['avatar_path']?.toString() ?? json['avatar_url']?.toString(),
     );
   }
 
@@ -51,6 +83,7 @@ class User {
       'locale': locale,
       'preferred_currency': preferredCurrency,
       'roles': roles,
+      'avatar_path': avatarPath,
     };
   }
 }

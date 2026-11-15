@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/localization/app_strings.dart';
 import '../../../core/theme/app_theme.dart';
@@ -8,6 +9,7 @@ import '../../auth/screens/login_screen.dart';
 import '../../listings/screens/favorites_screen.dart';
 import '../../listings/screens/my_listings_screen.dart';
 import 'devices_screen.dart';
+import 'edit_profile_screen.dart';
 import 'paid_ad_promotion_screen.dart';
 import 'verification_screen.dart';
 
@@ -106,9 +108,19 @@ class ProfileScreen extends ConsumerWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const NebulaAvatar(
-                    size: 72,
-                    initials: '?',
+                  Container(
+                    width: 72,
+                    height: 72,
+                    decoration: BoxDecoration(
+                      color: AppTheme.surfaceGlass,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: AppTheme.borderHairline),
+                    ),
+                    padding: const EdgeInsets.all(10),
+                    child: Image.asset(
+                      'assets/icons/app_logo_mark.png',
+                      fit: BoxFit.contain,
+                    ),
                   ),
                   const SizedBox(height: 20),
                   Text(
@@ -206,40 +218,139 @@ class ProfileScreen extends ConsumerWidget {
         // User Identity Card
         NebulaGlassCard(
           padding: const EdgeInsets.all(20),
-          child: Row(
+          child: Column(
             children: [
-              NebulaAvatar(
-                size: 58,
-                initials: user.name.isNotEmpty ? user.name[0].toUpperCase() : 'U',
-                isOnline: true,
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      user.name,
-                      style: AppTheme.bodyMd.copyWith(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 17,
-                        color: AppTheme.onSurface,
-                      ),
+              Row(
+                children: [
+                  NebulaAvatar(
+                    size: 64,
+                    initials: user.name.isNotEmpty ? user.name[0].toUpperCase() : 'U',
+                    imagePath: user.avatarPath,
+                    isOnline: true,
+                    showEditBadge: true,
+                    onEditTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const EditProfileScreen()),
+                      );
+                    },
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                user.name,
+                                style: AppTheme.bodyMd.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 18,
+                                  color: AppTheme.onSurface,
+                                ),
+                              ),
+                            ),
+                            // Quick Edit Profile Action Button
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => const EditProfileScreen()),
+                                );
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF38BDF8).withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+                                  border: Border.all(
+                                    color: const Color(0xFF38BDF8).withValues(alpha: 0.35),
+                                  ),
+                                ),
+                                child: const Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(Icons.edit_rounded, size: 12, color: Color(0xFF38BDF8)),
+                                    SizedBox(width: 4),
+                                    Text(
+                                      'Edit',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w700,
+                                        color: Color(0xFF38BDF8),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          user.email ?? user.phoneE164 ?? '',
+                          style: AppTheme.bodySm.copyWith(
+                            color: AppTheme.onSurfaceVariant,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            NebulaBadgePill(
+                              text: user.roles.isNotEmpty ? user.roles.first.toUpperCase() : 'BUYER',
+                              tone: NebulaBadgeTone.mint,
+                            ),
+                            const SizedBox(width: 8),
+                            // Unique ID badge with 1-tap copy
+                            GestureDetector(
+                              onTap: () {
+                                Clipboard.setData(ClipboardData(text: user.uniqueCode));
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Copied User ID: ${user.uniqueCode}'),
+                                    duration: const Duration(seconds: 2),
+                                    behavior: SnackBarBehavior.floating,
+                                    backgroundColor: const Color(0xFF1E293B),
+                                  ),
+                                );
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFBBF24).withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(
+                                    color: const Color(0xFFFBBF24).withValues(alpha: 0.3),
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(Icons.fingerprint_rounded, size: 12, color: Color(0xFFFBBF24)),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      user.uniqueCode,
+                                      style: const TextStyle(
+                                        fontFamily: 'monospace',
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w700,
+                                        color: Color(0xFFFBBF24),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    const Icon(Icons.copy_rounded, size: 11, color: Color(0xFFFBBF24)),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      user.email ?? user.phoneE164 ?? '',
-                      style: AppTheme.bodySm.copyWith(
-                        color: AppTheme.onSurfaceVariant,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    NebulaBadgePill(
-                      text: user.roles.isNotEmpty ? user.roles.first.toUpperCase() : 'BUYER',
-                      tone: NebulaBadgeTone.mint,
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -333,6 +444,19 @@ class ProfileScreen extends ConsumerWidget {
           padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
           child: Column(
             children: [
+              _buildMenuRow(
+                icon: Icons.manage_accounts_rounded,
+                accentColor: const Color(0xFF38BDF8),
+                title: 'Edit Profile',
+                subtitle: 'Update your display name, phone, or photo',
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const EditProfileScreen()),
+                  );
+                },
+              ),
+              const Divider(color: AppTheme.borderHairline),
               _buildMenuRow(
                 icon: Icons.bolt_rounded,
                 accentColor: AppTheme.accentAmber,

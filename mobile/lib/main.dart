@@ -320,13 +320,11 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Container(
-                                width: 8,
-                                height: 8,
-                                decoration: const BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: Color(0xFF38BDF8),
-                                ),
+                              Image.asset(
+                                'assets/icons/app_logo_mark.png',
+                                width: 22,
+                                height: 22,
+                                fit: BoxFit.contain,
                               ),
                               const SizedBox(width: 6),
                               const Text(
@@ -855,7 +853,7 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
                             sliver: SliverGrid(
                               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                                 crossAxisCount: 2,
-                                childAspectRatio: 0.68,
+                                childAspectRatio: 0.65,
                                 crossAxisSpacing: 12,
                                 mainAxisSpacing: 12,
                               ),
@@ -918,7 +916,7 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
                                               ClipRRect(
                                                 borderRadius: const BorderRadius.vertical(top: Radius.circular(13)),
                                                 child: Container(
-                                                  height: 130,
+                                                  height: 124,
                                                   width: double.infinity,
                                                   color: const Color(0xFF1A1F2D),
                                                   child: Stack(

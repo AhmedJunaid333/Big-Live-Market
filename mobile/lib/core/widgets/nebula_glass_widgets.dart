@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
@@ -449,71 +450,138 @@ class NebulaBadgePill extends StatelessWidget {
   }
 }
 
-/// Circular Avatar with optional presence dot
+/// Circular Avatar with optional presence dot, local/network image, and edit badge
 class NebulaAvatar extends StatelessWidget {
   final String? initials;
   final String? imageUrl;
+  final String? imagePath;
   final double size;
   final bool isOnline;
+  final bool showEditBadge;
+  final VoidCallback? onEditTap;
 
   const NebulaAvatar({
     super.key,
     this.initials,
     this.imageUrl,
+    this.imagePath,
     this.size = 48.0,
     this.isOnline = false,
+    this.showEditBadge = false,
+    this.onEditTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Container(
+    Widget content;
+    final hasLocalImage = imagePath != null && imagePath!.isNotEmpty && File(imagePath!).existsSync();
+
+    if (hasLocalImage) {
+      content = ClipOval(
+        child: Image.file(
+          File(imagePath!),
           width: size,
           height: size,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: AppTheme.surfaceGlass,
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.20),
-              width: 1,
-            ),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x4D000000),
-                blurRadius: 12,
-                offset: Offset(0, 4),
-              ),
-            ],
-          ),
-          alignment: Alignment.center,
-          child: Text(
-            initials ?? 'U',
-            style: TextStyle(
-              color: AppTheme.primaryLavender,
-              fontWeight: FontWeight.w700,
-              fontSize: size * 0.42,
-            ),
-          ),
+          fit: BoxFit.cover,
         ),
-        if (isOnline)
-          Positioned(
-            top: 0,
-            right: 0,
-            child: Container(
-              width: 12,
-              height: 12,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppTheme.secondaryMint,
-                border: Border.all(
-                  color: AppTheme.backgroundMid,
-                  width: 2,
+      );
+    } else if (imageUrl != null && imageUrl!.isNotEmpty) {
+      content = ClipOval(
+        child: Image.network(
+          imageUrl!,
+          width: size,
+          height: size,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => _buildFallbackInitials(),
+        ),
+      );
+    } else {
+      content = _buildFallbackInitials();
+    }
+
+    return GestureDetector(
+      onTap: onEditTap,
+      behavior: HitTestBehavior.opaque,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Container(
+            width: size,
+            height: size,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: AppTheme.surfaceGlass,
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.25),
+                width: 1.5,
+              ),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x66000000),
+                  blurRadius: 14,
+                  offset: Offset(0, 4),
+                ),
+              ],
+            ),
+            child: content,
+          ),
+          if (isOnline)
+            Positioned(
+              top: 0,
+              right: 0,
+              child: Container(
+                width: (size * 0.22).clamp(10.0, 16.0),
+                height: (size * 0.22).clamp(10.0, 16.0),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppTheme.secondaryMint,
+                  border: Border.all(
+                    color: AppTheme.backgroundMid,
+                    width: 2,
+                  ),
                 ),
               ),
             ),
-          ),
-      ],
+          if (showEditBadge)
+            Positioned(
+              bottom: -2,
+              right: -2,
+              child: Container(
+                padding: const EdgeInsets.all(5),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: const Color(0xFF38BDF8),
+                  border: Border.all(color: AppTheme.background, width: 2),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x6638BDF8),
+                      blurRadius: 8,
+                      spreadRadius: 1,
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.camera_alt_rounded,
+                  size: 14,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFallbackInitials() {
+    return Center(
+      child: Text(
+        initials ?? 'U',
+        style: TextStyle(
+          color: AppTheme.primaryLavender,
+          fontWeight: FontWeight.w700,
+          fontSize: size * 0.42,
+        ),
+      ),
     );
   }
 }
@@ -564,9 +632,10 @@ class FloatingGlassTabBar extends StatelessWidget {
                   Expanded(
                     child: _buildTabItem(
                       index: 0,
-                      activeIcon: Icons.home_filled,
-                      inactiveIcon: Icons.home_outlined,
+                      activeIcon: Icons.storefront_rounded,
+                      inactiveIcon: Icons.storefront_outlined,
                       label: 'Home',
+                      activeColor: const Color(0xFF38BDF8),
                     ),
                   ),
 
@@ -574,9 +643,10 @@ class FloatingGlassTabBar extends StatelessWidget {
                   Expanded(
                     child: _buildTabItem(
                       index: 1,
-                      activeIcon: Icons.chat_bubble_rounded,
-                      inactiveIcon: Icons.chat_bubble_outline_rounded,
+                      activeIcon: Icons.forum_rounded,
+                      inactiveIcon: Icons.forum_outlined,
                       label: 'Chats',
+                      activeColor: const Color(0xFF34D399),
                     ),
                   ),
 
@@ -587,9 +657,10 @@ class FloatingGlassTabBar extends StatelessWidget {
                   Expanded(
                     child: _buildTabItem(
                       index: 3,
-                      activeIcon: Icons.view_agenda_rounded,
-                      inactiveIcon: Icons.view_agenda_outlined,
+                      activeIcon: Icons.local_offer_rounded,
+                      inactiveIcon: Icons.local_offer_outlined,
                       label: 'My Ads',
+                      activeColor: const Color(0xFFFBBF24),
                     ),
                   ),
 
@@ -597,15 +668,16 @@ class FloatingGlassTabBar extends StatelessWidget {
                   Expanded(
                     child: _buildTabItem(
                       index: 4,
-                      activeIcon: Icons.person_rounded,
-                      inactiveIcon: Icons.person_outline_rounded,
+                      activeIcon: Icons.manage_accounts_rounded,
+                      inactiveIcon: Icons.manage_accounts_outlined,
                       label: 'Account',
+                      activeColor: const Color(0xFFA78BFA),
                     ),
                   ),
                 ],
               ),
 
-              // Center Raised SELL Button (OLX Style multi-color gradient ring + plus)
+              // Center Raised SELL Button (OLX Style multi-color gradient ring + detailed camera/sell icon)
               Positioned(
                 top: -18,
                 child: GestureDetector(
@@ -615,8 +687,8 @@ class FloatingGlassTabBar extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Container(
-                        width: 54,
-                        height: 54,
+                        width: 56,
+                        height: 56,
                         padding: const EdgeInsets.all(3.5),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
@@ -625,28 +697,39 @@ class FloatingGlassTabBar extends StatelessWidget {
                               Color(0xFF38BDF8), // Cyan
                               Color(0xFF34D399), // Mint
                               Color(0xFFFBBF24), // Amber/Yellow
+                              Color(0xFFF43F5E), // Rose
                               Color(0xFF818CF8), // Indigo
                               Color(0xFF38BDF8), // Cyan
                             ],
                           ),
                           boxShadow: const [
                             BoxShadow(
-                              color: Color(0x5538BDF8),
-                              blurRadius: 14,
-                              spreadRadius: 1,
-                              offset: Offset(0, 3),
+                              color: Color(0x6638BDF8),
+                              blurRadius: 16,
+                              spreadRadius: 2,
+                              offset: Offset(0, 4),
                             ),
                           ],
                         ),
                         child: Container(
                           decoration: const BoxDecoration(
                             shape: BoxShape.circle,
-                            color: Color(0xFF0F1420),
+                            gradient: RadialGradient(
+                              colors: [
+                                Color(0xFF1E2638),
+                                Color(0xFF0F1420),
+                              ],
+                            ),
                           ),
-                          child: const Icon(
-                            Icons.add_rounded,
-                            size: 32,
-                            color: Colors.white,
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: const [
+                              Icon(
+                                Icons.add_a_photo_rounded,
+                                size: 26,
+                                color: Colors.white,
+                              ),
+                            ],
                           ),
                         ),
                       ),
@@ -656,10 +739,10 @@ class FloatingGlassTabBar extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.w900,
-                          letterSpacing: 0.5,
+                          letterSpacing: 0.8,
                           color: selectedIndex == 2
                               ? const Color(0xFF38BDF8)
-                              : Colors.white.withValues(alpha: 0.9),
+                              : Colors.white.withValues(alpha: 0.95),
                         ),
                       ),
                     ],
@@ -678,6 +761,7 @@ class FloatingGlassTabBar extends StatelessWidget {
     required IconData activeIcon,
     required IconData inactiveIcon,
     required String label,
+    required Color activeColor,
   }) {
     final isActive = selectedIndex == index;
 
@@ -686,22 +770,25 @@ class FloatingGlassTabBar extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       child: Container(
         color: Colors.transparent,
-        padding: const EdgeInsets.symmetric(vertical: 4),
+        padding: const EdgeInsets.symmetric(vertical: 3),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             AnimatedContainer(
-              duration: const Duration(milliseconds: 180),
-              curve: Curves.easeOut,
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeOutCubic,
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
               decoration: BoxDecoration(
-                color: isActive ? Colors.white.withValues(alpha: 0.08) : Colors.transparent,
+                color: isActive ? activeColor.withValues(alpha: 0.14) : Colors.transparent,
                 borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+                border: isActive
+                    ? Border.all(color: activeColor.withValues(alpha: 0.3), width: 1)
+                    : null,
               ),
               child: Icon(
                 isActive ? activeIcon : inactiveIcon,
-                size: 22,
-                color: isActive ? const Color(0xFF38BDF8) : AppTheme.onSurfaceMuted,
+                size: 23,
+                color: isActive ? activeColor : AppTheme.onSurfaceMuted,
               ),
             ),
             const SizedBox(height: 2),
@@ -709,9 +796,9 @@ class FloatingGlassTabBar extends StatelessWidget {
               label,
               style: TextStyle(
                 fontSize: 10,
-                fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
-                color: isActive ? const Color(0xFF38BDF8) : AppTheme.onSurfaceMuted,
-                letterSpacing: 0.1,
+                fontWeight: isActive ? FontWeight.w800 : FontWeight.w500,
+                color: isActive ? activeColor : AppTheme.onSurfaceMuted,
+                letterSpacing: 0.2,
               ),
               maxLines: 1,
             ),

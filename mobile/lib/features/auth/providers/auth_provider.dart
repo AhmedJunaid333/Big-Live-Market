@@ -48,9 +48,10 @@ class AuthNotifier extends StateNotifier<AuthState> {
     try {
       final response = await _apiClient.dio.get('/me');
       final userData = response.data['data'] as Map<String, dynamic>;
+      final localAvatar = await _apiClient.storage.read(key: 'avatar_path_${userData['id']}');
       state = state.copyWith(
         isAuthenticated: true,
-        user: User.fromJson(userData),
+        user: User.fromJson(userData, localAvatarPath: localAvatar),
       );
     } catch (_) {
       await _apiClient.storage.delete(key: 'auth_token');
@@ -145,6 +146,54 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
     await _apiClient.storage.delete(key: 'auth_token');
     state = const AuthState();
+  }
+
+  Future<bool> updateProfile({
+    required String name,
+    String? phone,
+    String? avatarPath,
+  }) async {
+    if (state.user == null) return false;
+    state = state.copyWith(isLoading: true, errorMessage: null);
+
+    try {
+      if (avatarPath != null) {
+        await _apiClient.storage.write(
+          key: 'avatar_path_${state.user!.id}',
+          value: avatarPath,
+        );
+      }
+
+      try {
+        final response = await _apiClient.dio.patch('/me', data: {
+          'name': name,
+          if (phone != null && phone.isNotEmpty) 'phone_e164': phone,
+        });
+
+        if (response.data is Map && response.data['data'] != null) {
+          final updatedData = response.data['data'] as Map<String, dynamic>;
+          final updatedUser = User.fromJson(
+            updatedData,
+            localAvatarPath: avatarPath ?? state.user!.avatarPath,
+          );
+          state = state.copyWith(isLoading: false, user: updatedUser);
+          return true;
+        }
+      } catch (_) {
+        // Fallback for offline or local changes
+      }
+
+      final updatedUser = state.user!.copyWith(
+        name: name,
+        phoneE164: phone ?? state.user!.phoneE164,
+        avatarPath: avatarPath ?? state.user!.avatarPath,
+      );
+      state = state.copyWith(isLoading: false, user: updatedUser);
+      return true;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, errorMessage: e.toString());
+      return false;
+    }
   }
 }
 

@@ -5,13 +5,22 @@ import '../../../core/widgets/nebula_glass_widgets.dart';
 import '../../../main.dart';
 import 'listing_detail_screen.dart';
 import 'post_ad_screen.dart';
+import '../../auth/screens/login_screen.dart';
 
 final myListingsFutureProvider = FutureProvider.autoDispose<List<dynamic>>((ref) async {
   final client = ref.watch(apiClientProvider);
-  final response = await client.dio.get('/me/listings');
-  final data = response.data['data'];
-  if (data is List) {
-    return data;
+  final token = await client.storage.read(key: 'auth_token');
+  if (token == null || token.isEmpty) {
+    return [];
+  }
+  try {
+    final response = await client.dio.get('/me/listings');
+    final data = response.data['data'];
+    if (data is List) {
+      return data;
+    }
+  } catch (_) {
+    return [];
   }
   return [];
 });
@@ -400,16 +409,33 @@ class _MyListingsScreenState extends ConsumerState<MyListingsScreen> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
+                          const TintedIconBubble(
+                            icon: Icons.person_outline_rounded,
+                            tint: AppTheme.primaryLavender,
+                            size: 56,
+                          ),
+                          const SizedBox(height: 16),
                           Text(
                             'Sign in as a Seller to manage your ads',
                             style: AppTheme.headlineMd,
                             textAlign: TextAlign.center,
                           ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 8),
                           Text(
-                            '$err',
+                            'Log in or register to publish and monitor your listings.',
                             style: AppTheme.bodySm.copyWith(color: AppTheme.onSurfaceVariant),
                             textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 20),
+                          NebulaButtonPrimary(
+                            label: 'SIGN IN / REGISTER',
+                            icon: Icons.login_rounded,
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => const LoginScreen()),
+                              ).then((_) => ref.invalidate(myListingsFutureProvider));
+                            },
                           ),
                         ],
                       ),

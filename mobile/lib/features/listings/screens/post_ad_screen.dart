@@ -7,6 +7,8 @@ import '../../../core/services/image_optimization_service.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/nebula_glass_widgets.dart';
 import '../../../main.dart';
+import '../../auth/screens/login_screen.dart';
+import '../../categories/models/category_taxonomy.dart';
 
 class PostAdScreen extends ConsumerStatefulWidget {
   const PostAdScreen({super.key});
@@ -22,19 +24,12 @@ class _PostAdScreenState extends ConsumerState<PostAdScreen> {
   final _locationController = TextEditingController(text: 'Gulberg III, Lahore');
   final _descController = TextEditingController();
 
-  int _selectedCategory = 1;
+  int _selectedCategory = 3; // Default to Mobiles
+  int? _selectedSubcategory = 301; // Default to Mobile Phones
   final int _selectedCity = 1;
   String _selectedCondition = 'used';
   bool _isSubmitting = false;
   final List<XFile> _selectedImages = [];
-
-  final List<Map<String, dynamic>> _categories = const [
-    {'id': 1, 'name': 'Motors'},
-    {'id': 2, 'name': 'Mobiles'},
-    {'id': 3, 'name': 'Property'},
-    {'id': 4, 'name': 'Tech'},
-    {'id': 5, 'name': 'Bikes'},
-  ];
 
   @override
   void dispose() {
@@ -69,10 +64,59 @@ class _PostAdScreenState extends ConsumerState<PostAdScreen> {
   Future<void> _submitAd() async {
     if (!_formKey.currentState!.validate()) return;
 
+    final client = ref.read(apiClientProvider);
+    final token = await client.storage.read(key: 'auth_token');
+    if (token == null || token.isEmpty) {
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            backgroundColor: AppTheme.backgroundMid,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppTheme.radius2Xl),
+              side: const BorderSide(color: AppTheme.borderHairline),
+            ),
+            title: const Row(
+              children: [
+                Icon(Icons.lock_outline_rounded, color: AppTheme.primaryLavender),
+                SizedBox(width: 8),
+                Text('Sign In Required', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+              ],
+            ),
+            content: const Text(
+              'Please sign in or register an account before publishing advertisements.',
+              style: TextStyle(color: AppTheme.onSurfaceVariant, fontSize: 14),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('CANCEL', style: TextStyle(color: Colors.grey)),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primaryLavender,
+                  foregroundColor: Colors.black,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+                onPressed: () {
+                  Navigator.pop(ctx);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const LoginScreen()),
+                  );
+                },
+                child: const Text('SIGN IN', style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+            ],
+          ),
+        );
+      }
+      return;
+    }
+
     setState(() => _isSubmitting = true);
 
     try {
-      final client = ref.read(apiClientProvider);
       final price = double.tryParse(_priceController.text) ?? 50000;
 
       final res = await client.dio.post(
@@ -80,6 +124,7 @@ class _PostAdScreenState extends ConsumerState<PostAdScreen> {
         data: {
           'title': _titleController.text.trim(),
           'category_id': _selectedCategory,
+          if (_selectedSubcategory != null) 'subcategory_id': _selectedSubcategory,
           'city_id': _selectedCity,
           'price_minor': (price * 100).toInt(),
           'currency': 'PKR',
@@ -153,11 +198,21 @@ class _PostAdScreenState extends ConsumerState<PostAdScreen> {
       }
     } catch (e) {
       if (mounted) {
+        String msg = 'Failed to publish advert. Please try again.';
+        if (e is DioException) {
+          if (e.response?.statusCode == 401) {
+            msg = 'Session expired. Please sign in again to publish your ad.';
+          } else if (e.type == DioExceptionType.connectionTimeout || e.type == DioExceptionType.connectionError) {
+            msg = 'Unable to reach the server. Please check your internet connection.';
+          } else if (e.response?.data is Map && e.response?.data['message'] != null) {
+            msg = e.response!.data['message'].toString();
+          }
+        }
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             backgroundColor: AppTheme.error,
             content: Text(
-              'Advert saved offline: $e',
+              msg,
               style: const TextStyle(color: Colors.white),
             ),
           ),
@@ -339,7 +394,7 @@ class _PostAdScreenState extends ConsumerState<PostAdScreen> {
 
                         const SizedBox(height: 16),
 
-                        // Category Chips
+                        // Main Category Chips
                         Text(
                           'CATEGORY',
                           style: AppTheme.labelUppercase,
@@ -348,38 +403,142 @@ class _PostAdScreenState extends ConsumerState<PostAdScreen> {
                         SingleChildScrollView(
                           scrollDirection: Axis.horizontal,
                           child: Row(
-                            children: _categories.map((c) {
-                              final isSelected = _selectedCategory == c['id'];
+                            children: CategoryTaxonomy.allCategories.map((c) {
+                              final isSelected = _selectedCategory == c.id;
                               return Padding(
                                 padding: const EdgeInsets.only(right: 8),
                                 child: GestureDetector(
-                                  onTap: () => setState(() => _selectedCategory = c['id'] as int),
+                                  onTap: () {
+                                    setState(() {
+                                      _selectedCategory = c.id;
+                                      _selectedSubcategory = c.subcategories.isNotEmpty
+                                          ? c.subcategories.first.id
+                                          : null;
+                                    });
+                                  },
                                   child: AnimatedContainer(
                                     duration: const Duration(milliseconds: 200),
-                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                                     decoration: BoxDecoration(
                                       color: isSelected
-                                          ? AppTheme.primaryLavender.withValues(alpha: 0.20)
+                                          ? c.tint.withValues(alpha: 0.22)
                                           : AppTheme.surfaceGlass,
                                       borderRadius: BorderRadius.circular(AppTheme.radiusSm),
                                       border: Border.all(
                                         color: isSelected
-                                            ? AppTheme.primaryLavender
+                                            ? c.tint
                                             : AppTheme.borderHairline,
+                                        width: isSelected ? 1.3 : 1.0,
                                       ),
                                     ),
-                                    child: Text(
-                                      c['name'] as String,
-                                      style: AppTheme.bodyMd.copyWith(
-                                        color: isSelected ? AppTheme.primaryLavender : AppTheme.onSurfaceMuted,
-                                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                                      ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          c.icon,
+                                          size: 16,
+                                          color: isSelected ? c.tint : AppTheme.onSurfaceMuted,
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Text(
+                                          c.name,
+                                          style: AppTheme.bodyMd.copyWith(
+                                            color: isSelected ? AppTheme.onSurface : AppTheme.onSurfaceMuted,
+                                            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                                            fontSize: 13,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 ),
                               );
                             }).toList(),
                           ),
+                        ),
+
+                        // Dynamic Subcategories Chips
+                        Builder(
+                          builder: (context) {
+                            final currentCat = CategoryTaxonomy.getCategoryById(_selectedCategory);
+                            final subs = currentCat.subcategories;
+                            if (subs.isEmpty) return const SizedBox.shrink();
+
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const SizedBox(height: 14),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      'SUBCATEGORY',
+                                      style: AppTheme.labelUppercase.copyWith(
+                                        color: currentCat.tint,
+                                      ),
+                                    ),
+                                    Text(
+                                      '${subs.length} OPTIONS',
+                                      style: AppTheme.caption.copyWith(
+                                        color: AppTheme.onSurfaceMuted,
+                                        fontSize: 10,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
+                                  child: Row(
+                                    children: subs.map((sub) {
+                                      final isSelected = _selectedSubcategory == sub.id;
+                                      return Padding(
+                                        padding: const EdgeInsets.only(right: 8),
+                                        child: GestureDetector(
+                                          onTap: () => setState(() => _selectedSubcategory = sub.id),
+                                          child: AnimatedContainer(
+                                            duration: const Duration(milliseconds: 180),
+                                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                                            decoration: BoxDecoration(
+                                              color: isSelected
+                                                  ? currentCat.tint.withValues(alpha: 0.25)
+                                                  : AppTheme.surfaceGlass,
+                                              borderRadius: BorderRadius.circular(20),
+                                              border: Border.all(
+                                                color: isSelected
+                                                    ? currentCat.tint
+                                                    : AppTheme.borderHairline,
+                                                width: isSelected ? 1.3 : 1.0,
+                                              ),
+                                            ),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Icon(
+                                                  sub.icon,
+                                                  size: 14,
+                                                  color: isSelected ? currentCat.tint : AppTheme.onSurfaceMuted,
+                                                ),
+                                                const SizedBox(width: 6),
+                                                Text(
+                                                  sub.name,
+                                                  style: AppTheme.bodySm.copyWith(
+                                                    color: isSelected ? AppTheme.onSurface : AppTheme.onSurfaceMuted,
+                                                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                                                    fontSize: 12,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    }).toList(),
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
                         ),
 
                         const SizedBox(height: 16),
