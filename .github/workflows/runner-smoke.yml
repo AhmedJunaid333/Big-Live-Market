@@ -1,0 +1,29 @@
+name: Runner diagnostic smoke test
+
+on:
+  push:
+    branches:
+      - fix/auth-and-real-listings-20261115
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  runner-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Confirm runner starts
+        run: |
+          echo "RUNNER_STARTED"
+          uname -a
+          echo "RUNNER_SMOKE_OK" >> "$GITHUB_STEP_SUMMARY"
+      - name: Store proof
+        run: |
+          echo "Runner successfully executed a shell step" > runner-smoke.txt
+      - name: Upload proof
+        uses: actions/upload-artifact@v4
+        with:
+          name: runner-smoke-proof
+          path: runner-smoke.txt
