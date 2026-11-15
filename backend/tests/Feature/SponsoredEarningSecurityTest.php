@@ -154,6 +154,26 @@ class SponsoredEarningSecurityTest extends TestCase
         $this->assertDatabaseCount('earning_ledger_entries', 1);
     }
 
+    public function test_finance_rejection_releases_funds_once_and_blocks_transferred_payouts(): void
+    {
+        $user = $this->actor('buyer');
+        $finance = $this->actor('finance');
+        $this->wallet($user, 100, 600);
+        $id = DB::table('earning_withdrawals')->insertGetId([
+            'user_id' => $user->id, 'amount_minor' => 600, 'method' => 'bank',
+            'beneficiary_encrypted' => encrypt('test-account'), 'status' => 'requested',
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+        $url = "/api/v1/admin/earn/withdrawals/{$id}/reject";
+        $this->actingAs($finance)->postJson($url, ['reason' => 'Invalid beneficiary'])->assertOk();
+        $this->actingAs($finance)->postJson($url, ['reason' => 'Invalid beneficiary'])->assertStatus(409);
+        $this->assertDatabaseHas('earning_wallets', [
+            'user_id' => $user->id, 'available_minor' => 700, 'held_minor' => 0,
+        ]);
+        $this->assertDatabaseHas('earning_withdrawals', ['id' => $id, 'status' => 'rejected']);
+        $this->assertDatabaseCount('earning_ledger_entries', 1);
+    }
+
     public function test_same_finance_officer_cannot_confirm_their_own_transfer(): void
     {
         $user = $this->actor('user');
