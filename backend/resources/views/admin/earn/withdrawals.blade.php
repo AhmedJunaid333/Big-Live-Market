@@ -1,114 +1,116 @@
-<!doctype html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Withdrawal Review & Payouts | Big Live</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-slate-100 text-slate-900">
-    <main class="max-w-7xl mx-auto p-5 md:p-8">
-        <div class="flex items-center justify-between mb-6">
-            <a href="{{ route('admin.earn.dashboard') }}" class="text-indigo-700 underline font-semibold">← Earn Dashboard</a>
-            <span class="text-xs bg-emerald-100 text-emerald-800 font-bold px-3 py-1 rounded-full uppercase">Finance Officers Only</span>
+@extends('layouts.admin')
+
+@section('title', 'Withdrawal Payouts & Settlement')
+@section('page_title', 'Withdrawals & Payouts Settlement')
+@section('page_subtitle', 'Dual-control financial authorization for JazzCash, EasyPaisa, and bank transfers')
+
+@section('content')
+<div class="space-y-6 max-w-7xl mx-auto">
+
+    <!-- SUB-NAV TABS -->
+    <div class="flex flex-wrap gap-2 p-1.5 bg-white rounded-2xl border border-slate-200/80 shadow-xs max-w-fit">
+        <a href="{{ route('admin.earn.dashboard') }}" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 transition">
+            Earn Overview
+        </a>
+        <a href="{{ route('admin.earn.campaigns') }}" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 transition">
+            Manage Campaigns
+        </a>
+        <a href="{{ route('admin.earn.submissions') }}" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 transition">
+            Review Submissions
+        </a>
+        <a href="{{ route('admin.earn.withdrawals') }}" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-navy-800 text-white shadow-xs">
+            Review Withdrawals
+        </a>
+    </div>
+
+    <!-- WITHDRAWALS TABLE -->
+    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+        <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+            <h3 class="font-bold text-slate-800 text-sm">Payout Requests Queue</h3>
+            <span class="text-xs text-slate-400">Total: {{ $withdrawals->total() }}</span>
         </div>
 
-        <h1 class="text-3xl font-bold">Withdrawal Payout & Settlement Queue</h1>
-        <p class="text-slate-600 mt-2 mb-6">Dual-control financial authorization. Officer 1 records the external transfer reference; Officer 2 independently confirms bank/wallet settlement.</p>
-
-        @if(session('success'))
-            <div role="status" class="bg-green-50 border-l-4 border-green-600 text-green-800 p-4 mb-6 rounded-r-lg shadow-sm">
-                {{ session('success') }}
-            </div>
-        @endif
-
-        @if($errors->any())
-            <div role="alert" class="bg-red-50 border-l-4 border-red-600 text-red-800 p-4 mb-6 rounded-r-lg shadow-sm">
-                <ul class="list-disc pl-5">
-                    @foreach($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
-
-        <section class="bg-white p-5 rounded-xl shadow-sm overflow-x-auto">
-            <table class="w-full text-left text-sm">
-                <thead>
-                    <tr class="border-b bg-slate-50 text-slate-700">
-                        <th class="p-3">ID</th>
-                        <th class="p-3">User ID</th>
-                        <th class="p-3">Amount (PKR)</th>
-                        <th class="p-3">Method</th>
-                        <th class="p-3">Status</th>
-                        <th class="p-3">Transfer Reference</th>
-                        <th class="p-3 text-right">Actions</th>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 border-b border-slate-100 text-slate-500 uppercase tracking-wider text-[10px]">
+                    <tr>
+                        <th class="p-3.5 font-semibold">ID</th>
+                        <th class="p-3.5 font-semibold">User</th>
+                        <th class="p-3.5 font-semibold">Amount (PKR)</th>
+                        <th class="p-3.5 font-semibold">Method</th>
+                        <th class="p-3.5 font-semibold">Status</th>
+                        <th class="p-3.5 font-semibold">Transfer Reference</th>
+                        <th class="p-3.5 font-semibold text-right">Settlement Actions</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody class="divide-y divide-slate-100">
                     @forelse($withdrawals as $w)
-                        <tr class="border-b align-top hover:bg-slate-50 transition">
-                            <td class="p-3 font-mono font-bold">{{ $w->id }}</td>
-                            <td class="p-3 font-mono">{{ $w->user_id }}</td>
-                            <td class="p-3 font-bold text-slate-900">PKR {{ number_format($w->amount_minor / 100, 2) }}</td>
-                            <td class="p-3 uppercase text-xs font-semibold">{{ $w->method }}</td>
-                            <td class="p-3">
+                        <tr class="hover:bg-slate-50/80 transition">
+                            <td class="p-3.5 font-mono text-slate-400">#{{ $w->id }}</td>
+                            <td class="p-3.5 font-mono text-slate-700">User #{{ $w->user_id }}</td>
+                            <td class="p-3.5 font-extrabold text-slate-900">PKR {{ number_format($w->amount_minor / 100, 2) }}</td>
+                            <td class="p-3.5 uppercase font-medium text-slate-600">{{ $w->method }}</td>
+                            <td class="p-3.5">
                                 @if($w->status === 'requested')
-                                    <span class="bg-amber-100 text-amber-800 text-xs px-2.5 py-1 rounded-full font-bold">Awaiting Transfer</span>
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">Awaiting Transfer</span>
                                 @elseif($w->status === 'transferred_pending_confirmation')
-                                    <span class="bg-blue-100 text-blue-800 text-xs px-2.5 py-1 rounded-full font-bold">Pending Confirmation</span>
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-brand-blue border border-blue-200">Pending Confirmation</span>
                                 @elseif($w->status === 'paid')
-                                    <span class="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-1 rounded-full font-bold">Settled & Paid</span>
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">Settled & Paid</span>
                                 @elseif($w->status === 'rejected')
-                                    <span class="bg-rose-100 text-rose-800 text-xs px-2.5 py-1 rounded-full font-bold">Rejected & Refunded</span>
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200">Rejected & Refunded</span>
                                 @else
-                                    <span class="text-slate-600">{{ $w->status }}</span>
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-600">{{ $w->status }}</span>
                                 @endif
                             </td>
-                            <td class="p-3 font-mono text-xs text-slate-600">{{ $w->transfer_reference ?: '—' }}</td>
-                            <td class="p-3 text-right space-y-2 whitespace-nowrap">
+                            <td class="p-3.5 font-mono text-slate-500 text-[11px]">{{ $w->transfer_reference ?: '—' }}</td>
+                            <td class="p-3.5 text-right whitespace-nowrap">
                                 @if($w->status === 'requested')
                                     <!-- Officer 1: Record transfer -->
                                     <form method="POST" action="{{ route('admin.earn.withdrawals.transfer', $w->id) }}" class="inline-flex items-center gap-1.5">
                                         @csrf
-                                        <input type="text" name="transfer_reference" placeholder="Trx ID (JazzCash/Bank)" required maxlength="200" class="border text-xs rounded px-2 py-1 w-44">
-                                        <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs px-3 py-1.5 rounded-lg shadow-sm">
-                                            Record Transfer
+                                        <input type="text" name="transfer_reference" placeholder="Trx ID (JazzCash/Bank)" required maxlength="200" class="border text-[11px] rounded-lg px-2 py-1 w-36 border-slate-300">
+                                        <button type="submit" class="bg-brand-blue hover:bg-brand-light text-white font-semibold text-[11px] px-2.5 py-1 rounded-lg transition">
+                                            Record Trx
                                         </button>
                                     </form>
 
-                                    <!-- Reject Untransferred -->
-                                    <form method="POST" action="{{ route('admin.earn.withdrawals.reject', $w->id) }}" class="inline" onsubmit="return confirm('Reject withdrawal and release funds back to user?');">
+                                    <!-- Reject -->
+                                    <form method="POST" action="{{ route('admin.earn.withdrawals.reject', $w->id) }}" class="inline ml-1" onsubmit="return confirm('Reject and refund balance?');">
                                         @csrf
                                         <input type="hidden" name="reason" value="Beneficiary account invalid or unverified">
-                                        <button type="submit" class="bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs px-2.5 py-1.5 rounded-lg shadow-sm">
+                                        <button type="submit" class="bg-rose-50 hover:bg-rose-100 text-rose-700 font-semibold text-[11px] px-2 py-1 rounded-lg transition">
                                             Reject
                                         </button>
                                     </form>
                                 @elseif($w->status === 'transferred_pending_confirmation')
                                     <!-- Officer 2: Confirm settlement -->
-                                    <form method="POST" action="{{ route('admin.earn.withdrawals.confirm', $w->id) }}" class="inline" onsubmit="return confirm('Confirm that funds have been settled to the user?');">
+                                    <form method="POST" action="{{ route('admin.earn.withdrawals.confirm', $w->id) }}" class="inline" onsubmit="return confirm('Confirm funds settlement?');">
                                         @csrf
-                                        <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs px-3 py-1.5 rounded-lg shadow-sm">
+                                        <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-[11px] px-3 py-1 rounded-lg transition">
                                             ✓ Confirm Settle
                                         </button>
                                     </form>
                                 @else
-                                    <span class="text-xs text-slate-400">Complete</span>
+                                    <span class="text-slate-400 text-[11px]">Completed</span>
                                 @endif
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="p-8 text-center text-slate-500">
-                                No withdrawals pending review or action.
-                            </td>
+                            <td colspan="7" class="p-8 text-center text-slate-400">No withdrawals pending action.</td>
                         </tr>
                     @endforelse
                 </tbody>
             </table>
-            <div class="mt-4">{{ $withdrawals->links() }}</div>
-        </section>
-    </main>
-</body>
-</html>
+        </div>
+
+        @if($withdrawals->hasPages())
+            <div class="p-4 border-t border-slate-100">
+                {{ $withdrawals->links() }}
+            </div>
+        @endif
+    </div>
+
+</div>
+@endsection

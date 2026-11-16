@@ -88,7 +88,7 @@ Route::post('/logout', function (Request $request) {
     $request->session()->invalidate();
     $request->session()->regenerateToken();
     return redirect('/');
-});
+})->name('logout');
 
 Route::get('/dashboard', function () {
     return view('dashboard');
@@ -213,19 +213,57 @@ Route::get('/safety', function () {
     ]);
 });
 
-// Sponsored earnings: browser-based administration, protected by session auth and role checks.
-Route::get('/admin/earn', [\App\Http\Controllers\Web\EarnAdminDashboardController::class, 'index'])
-    ->middleware('auth')
-    ->name('admin.earn.dashboard');
+// Unified Admin Portal & Operations
+Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/', function () {
+        return redirect()->route('admin.dashboard');
+    });
+    Route::get('/dashboard', [\App\Http\Controllers\Web\AdminPortalController::class, 'dashboard'])->name('dashboard');
 
-Route::middleware('auth')->prefix('admin/earn')->name('admin.earn.')->group(function () {
-    Route::get('/campaigns', [\App\Http\Controllers\Web\EarnAdminOperationsController::class, 'campaigns'])->name('campaigns');
-    Route::post('/campaigns', [\App\Http\Controllers\Web\EarnAdminOperationsController::class, 'storeCampaign'])->name('campaigns.store')->middleware('throttle:10,1');
-    Route::post('/campaigns/{campaign}/verify', [\App\Http\Controllers\Web\EarnAdminOperationsController::class, 'verifyCampaign'])->name('campaigns.verify');
-    Route::get('/submissions', [\App\Http\Controllers\Web\EarnAdminOperationsController::class, 'submissions'])->name('submissions');
-    Route::post('/submissions/{submission}/review', [\App\Http\Controllers\Web\EarnAdminOperationsController::class, 'reviewSubmission'])->name('submissions.review');
-    Route::get('/withdrawals', [\App\Http\Controllers\Web\EarnAdminOperationsController::class, 'withdrawals'])->name('withdrawals');
-    Route::post('/withdrawals/{withdrawal}/transfer', [\App\Http\Controllers\Web\EarnAdminOperationsController::class, 'transferWithdrawal'])->name('withdrawals.transfer');
-    Route::post('/withdrawals/{withdrawal}/confirm', [\App\Http\Controllers\Web\EarnAdminOperationsController::class, 'confirmWithdrawal'])->name('withdrawals.confirm');
-    Route::post('/withdrawals/{withdrawal}/reject', [\App\Http\Controllers\Web\EarnAdminOperationsController::class, 'rejectWithdrawal'])->name('withdrawals.reject');
+    // Categories & Sub-categories
+    Route::get('/categories', [\App\Http\Controllers\Web\AdminPortalController::class, 'categories'])->name('categories');
+    Route::post('/categories', [\App\Http\Controllers\Web\AdminPortalController::class, 'storeCategory'])->name('categories.store');
+    Route::put('/categories/{category}', [\App\Http\Controllers\Web\AdminPortalController::class, 'updateCategory'])->name('categories.update');
+    Route::delete('/categories/{category}', [\App\Http\Controllers\Web\AdminPortalController::class, 'deleteCategory'])->name('categories.destroy');
+
+    // Listings Moderation & Management
+    Route::get('/listings', [\App\Http\Controllers\Web\AdminPortalController::class, 'listings'])->name('listings');
+    Route::post('/listings/{listing}/approve', [\App\Http\Controllers\Web\AdminPortalController::class, 'approveListing'])->name('listings.approve');
+    Route::post('/listings/{listing}/reject', [\App\Http\Controllers\Web\AdminPortalController::class, 'rejectListing'])->name('listings.reject');
+
+    // Users & Roles
+    Route::get('/users', [\App\Http\Controllers\Web\AdminPortalController::class, 'users'])->name('users');
+    Route::post('/users', [\App\Http\Controllers\Web\AdminPortalController::class, 'storeUser'])->name('users.store');
+    Route::patch('/users/{user}/status', [\App\Http\Controllers\Web\AdminPortalController::class, 'updateUserStatus'])->name('users.update-status');
+    Route::patch('/users/{user}/role', [\App\Http\Controllers\Web\AdminPortalController::class, 'updateUserRole'])->name('users.update-role');
+    Route::post('/users/{user}/reset-password', [\App\Http\Controllers\Web\AdminPortalController::class, 'resetUserPassword'])->name('users.reset-password');
+    Route::delete('/users/{user}', [\App\Http\Controllers\Web\AdminPortalController::class, 'deleteUser'])->name('users.destroy');
+
+    // KYC & Verification Queue
+    Route::get('/verifications', [\App\Http\Controllers\Web\AdminPortalController::class, 'verifications'])->name('verifications');
+    Route::post('/verifications/{id}/decide', [\App\Http\Controllers\Web\AdminPortalController::class, 'decideVerification'])->name('verifications.decide');
+
+    // Safety & Abuse Reports
+    Route::get('/reports', [\App\Http\Controllers\Web\AdminPortalController::class, 'reports'])->name('reports');
+    Route::post('/reports/{report}/resolve', [\App\Http\Controllers\Web\AdminPortalController::class, 'resolveReport'])->name('reports.resolve');
+
+    // Monetization & Orders
+    Route::get('/monetization', [\App\Http\Controllers\Web\AdminPortalController::class, 'monetization'])->name('monetization');
+
+    // Audit Trail
+    Route::get('/audit-logs', [\App\Http\Controllers\Web\AdminPortalController::class, 'auditLogs'])->name('audit-logs');
+
+    // Sponsored earnings
+    Route::get('/earn', [\App\Http\Controllers\Web\EarnAdminDashboardController::class, 'index'])->name('earn.dashboard');
+    Route::prefix('earn')->name('earn.')->group(function () {
+        Route::get('/campaigns', [\App\Http\Controllers\Web\EarnAdminOperationsController::class, 'campaigns'])->name('campaigns');
+        Route::post('/campaigns', [\App\Http\Controllers\Web\EarnAdminOperationsController::class, 'storeCampaign'])->name('campaigns.store')->middleware('throttle:10,1');
+        Route::post('/campaigns/{campaign}/verify', [\App\Http\Controllers\Web\EarnAdminOperationsController::class, 'verifyCampaign'])->name('campaigns.verify');
+        Route::get('/submissions', [\App\Http\Controllers\Web\EarnAdminOperationsController::class, 'submissions'])->name('submissions');
+        Route::post('/submissions/{submission}/review', [\App\Http\Controllers\Web\EarnAdminOperationsController::class, 'reviewSubmission'])->name('submissions.review');
+        Route::get('/withdrawals', [\App\Http\Controllers\Web\EarnAdminOperationsController::class, 'withdrawals'])->name('withdrawals');
+        Route::post('/withdrawals/{withdrawal}/transfer', [\App\Http\Controllers\Web\EarnAdminOperationsController::class, 'transferWithdrawal'])->name('withdrawals.transfer');
+        Route::post('/withdrawals/{withdrawal}/confirm', [\App\Http\Controllers\Web\EarnAdminOperationsController::class, 'confirmWithdrawal'])->name('withdrawals.confirm');
+        Route::post('/withdrawals/{withdrawal}/reject', [\App\Http\Controllers\Web\EarnAdminOperationsController::class, 'rejectWithdrawal'])->name('withdrawals.reject');
+    });
 });
