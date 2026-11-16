@@ -39,17 +39,19 @@ class AdminPortalController extends Controller
             'pending_review' => Listing::where('status', 'pending_review')->count(),
             'total_users' => User::count(),
             'verified_users' => User::whereHas('verifications', fn($q) => $q->where('status', 'approved'))->count(),
+            'pending_kyc' => UserVerification::where('status', 'pending')->count(),
             'open_reports' => Report::where('status', 'open')->count(),
             'total_categories' => Category::whereNull('parent_id')->count(),
             'total_subcategories' => Category::whereNotNull('parent_id')->count(),
             'pending_withdrawals' => DB::table('earning_withdrawals')->whereIn('status', ['requested', 'transferred_pending_confirmation'])->count(),
             'active_campaigns' => DB::table('sponsored_campaigns')->where('status', 'active')->count(),
+            'total_orders' => Order::count(),
         ];
 
         $pendingListings = Listing::with(['seller', 'category', 'city'])
             ->where('status', 'pending_review')
             ->latest('id')
-            ->limit(5)
+            ->limit(6)
             ->get();
 
         $recentReports = Report::with(['reporter'])
@@ -61,10 +63,15 @@ class AdminPortalController extends Controller
         $recentWithdrawals = DB::table('earning_withdrawals')
             ->whereIn('status', ['requested', 'transferred_pending_confirmation'])
             ->latest('id')
-            ->limit(5)
+            ->limit(6)
             ->get();
 
-        return view('admin.dashboard', compact('metrics', 'pendingListings', 'recentReports', 'recentWithdrawals'));
+        $recentAudits = AuditLog::with('actor')
+            ->latest('id')
+            ->limit(6)
+            ->get();
+
+        return view('admin.dashboard', compact('metrics', 'pendingListings', 'recentReports', 'recentWithdrawals', 'recentAudits'));
     }
 
     /**

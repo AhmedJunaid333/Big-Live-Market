@@ -71,6 +71,129 @@
             color: #93C5FD !important;
             font-weight: 600;
         }
+
+        /* ========================================================
+           TACTILE REALISTIC 3D BUTTONS SYSTEM
+           ======================================================== */
+        .btn-real {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            letter-spacing: 0.025em;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.12s ease-in-out;
+            text-decoration: none;
+        }
+        .btn-real:hover {
+            transform: translateY(-1.5px);
+        }
+        .btn-real:active {
+            transform: translateY(2px) !important;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.35) !important;
+        }
+
+        /* 🟢 Emerald Realistic 3D (Approve / Add / Save) */
+        .btn-real-emerald {
+            background: linear-gradient(180deg, #10B981 0%, #059669 50%, #047857 100%);
+            color: #FFFFFF;
+            border: 1px solid #065F46;
+            border-bottom: 3px solid #064E3B;
+            box-shadow: 0 1px 0 rgba(255, 255, 255, 0.3) inset, 0 3px 6px rgba(16, 185, 129, 0.25);
+            text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.3);
+        }
+        .btn-real-emerald:hover {
+            background: linear-gradient(180deg, #34D399 0%, #10B981 50%, #059669 100%);
+            box-shadow: 0 1px 0 rgba(255, 255, 255, 0.4) inset, 0 6px 12px rgba(16, 185, 129, 0.35);
+        }
+
+        /* 🔵 Sapphire Blue Realistic 3D (Primary / Review / Navigate) */
+        .btn-real-blue {
+            background: linear-gradient(180deg, #3B82F6 0%, #2563EB 50%, #1D4ED8 100%);
+            color: #FFFFFF;
+            border: 1px solid #1E40AF;
+            border-bottom: 3px solid #172554;
+            box-shadow: 0 1px 0 rgba(255, 255, 255, 0.3) inset, 0 3px 6px rgba(37, 99, 235, 0.3);
+            text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.3);
+        }
+        .btn-real-blue:hover {
+            background: linear-gradient(180deg, #60A5FA 0%, #3B82F6 50%, #2563EB 100%);
+            box-shadow: 0 1px 0 rgba(255, 255, 255, 0.4) inset, 0 6px 12px rgba(37, 99, 235, 0.4);
+        }
+
+        /* 🔴 Crimson Ruby Realistic 3D (Reject / Suspend / Delete) */
+        .btn-real-rose {
+            background: linear-gradient(180deg, #F43F5E 0%, #E11D48 50%, #BE123C 100%);
+            color: #FFFFFF;
+            border: 1px solid #9F1239;
+            border-bottom: 3px solid #881337;
+            box-shadow: 0 1px 0 rgba(255, 255, 255, 0.3) inset, 0 3px 6px rgba(225, 29, 72, 0.25);
+            text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.3);
+        }
+        .btn-real-rose:hover {
+            background: linear-gradient(180deg, #FB7185 0%, #F43F5E 50%, #E11D48 100%);
+            box-shadow: 0 1px 0 rgba(255, 255, 255, 0.4) inset, 0 6px 12px rgba(225, 29, 72, 0.35);
+        }
+
+        /* 🟡 Amber Gold Realistic 3D (Warning / Payouts / KYC) */
+        .btn-real-amber {
+            background: linear-gradient(180deg, #FBBF24 0%, #F59E0B 50%, #D97706 100%);
+            color: #78350F;
+            border: 1px solid #B45309;
+            border-bottom: 3px solid #92400E;
+            box-shadow: 0 1px 0 rgba(255, 255, 255, 0.45) inset, 0 3px 6px rgba(245, 158, 11, 0.3);
+            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+        }
+        .btn-real-amber:hover {
+            background: linear-gradient(180deg, #FCD34D 0%, #FBBF24 50%, #F59E0B 100%);
+            box-shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset, 0 6px 12px rgba(245, 158, 11, 0.4);
+        }
+
+        /* 🟣 Amethyst Purple Realistic 3D (Taxonomy / Subcategory / Config) */
+        .btn-real-purple {
+            background: linear-gradient(180deg, #A855F7 0%, #9333EA 50%, #7E22CE 100%);
+            color: #FFFFFF;
+            border: 1px solid #6B21A8;
+            border-bottom: 3px solid #581C87;
+            box-shadow: 0 1px 0 rgba(255, 255, 255, 0.3) inset, 0 3px 6px rgba(147, 51, 234, 0.25);
+            text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.3);
+        }
+        .btn-real-purple:hover {
+            background: linear-gradient(180deg, #C084FC 0%, #A855F7 50%, #9333EA 100%);
+            box-shadow: 0 1px 0 rgba(255, 255, 255, 0.4) inset, 0 6px 12px rgba(147, 51, 234, 0.35);
+        }
+
+        /* ⚪ Platinum / Light Slate Tactile 3D (Cancel / View / Secondary) */
+        .btn-real-light {
+            background: linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 50%, #F1F5F9 100%);
+            color: #1E293B;
+            border: 1px solid #CBD5E1;
+            border-bottom: 3px solid #94A3B8;
+            box-shadow: 0 1px 0 rgba(255, 255, 255, 0.9) inset, 0 2px 4px rgba(15, 23, 42, 0.08);
+            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+        }
+        .btn-real-light:hover {
+            background: linear-gradient(180deg, #FFFFFF 0%, #F1F5F9 100%);
+            color: #0F172A;
+            box-shadow: 0 1px 0 rgba(255, 255, 255, 0.9) inset, 0 4px 8px rgba(15, 23, 42, 0.12);
+        }
+
+        /* ⚫ Obsidian Dark Tactile 3D */
+        .btn-real-dark {
+            background: linear-gradient(180deg, #334155 0%, #1E293B 50%, #0F172A 100%);
+            color: #F8FAFC;
+            border: 1px solid #0F172A;
+            border-bottom: 3px solid #020617;
+            box-shadow: 0 1px 0 rgba(255, 255, 255, 0.15) inset, 0 3px 6px rgba(0, 0, 0, 0.4);
+            text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.6);
+        }
+        .btn-real-dark:hover {
+            background: linear-gradient(180deg, #475569 0%, #334155 50%, #1E293B 100%);
+            box-shadow: 0 1px 0 rgba(255, 255, 255, 0.25) inset, 0 5px 10px rgba(0, 0, 0, 0.5);
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900 font-sans antialiased flex h-screen overflow-hidden">
