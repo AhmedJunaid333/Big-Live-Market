@@ -17,7 +17,27 @@ use Illuminate\Support\Str;
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    $parentCategories = Category::whereNull('parent_id')
+        ->withCount('children')
+        ->orderBy('sort_order')
+        ->get();
+
+    $featuredListings = Listing::where('status', 'active')
+        ->with(['category', 'city', 'seller'])
+        ->latest('published_at')
+        ->take(8)
+        ->get();
+
+    $cities = City::orderBy('name')->get();
+
+    $counts = [
+        'listings' => Listing::where('status', 'active')->count(),
+        'users' => User::count(),
+        'categories' => $parentCategories->count(),
+        'cities' => $cities->count(),
+    ];
+
+    return view('welcome', compact('parentCategories', 'featuredListings', 'cities', 'counts'));
 });
 
 // Authentication Routes
@@ -254,8 +274,9 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::get('/audit-logs', [\App\Http\Controllers\Web\AdminPortalController::class, 'auditLogs'])->name('audit-logs');
 
     // Sponsored earnings
-    Route::get('/earn', [\App\Http\Controllers\Web\EarnAdminDashboardController::class, 'index'])->name('earn.dashboard');
+    Route::get('/earn', [\App\Http\Controllers\Web\EarnAdminDashboardController::class, 'index'])->name('earn');
     Route::prefix('earn')->name('earn.')->group(function () {
+        Route::get('/dashboard', [\App\Http\Controllers\Web\EarnAdminDashboardController::class, 'index'])->name('dashboard');
         Route::get('/campaigns', [\App\Http\Controllers\Web\EarnAdminOperationsController::class, 'campaigns'])->name('campaigns');
         Route::post('/campaigns', [\App\Http\Controllers\Web\EarnAdminOperationsController::class, 'storeCampaign'])->name('campaigns.store')->middleware('throttle:10,1');
         Route::post('/campaigns/{campaign}/verify', [\App\Http\Controllers\Web\EarnAdminOperationsController::class, 'verifyCampaign'])->name('campaigns.verify');

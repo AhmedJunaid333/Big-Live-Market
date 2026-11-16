@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Admin Portal') — Big Live Marketplace</title>
+    <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('favicon.png') }}">
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -79,9 +81,7 @@
         <!-- Logo & Brand Header -->
         <div class="h-16 flex items-center justify-between px-6 border-b border-navy-700/80 bg-navy-900/60 flex-shrink-0">
             <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3">
-                <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-brand-blue to-cyan-400 flex items-center justify-center text-white font-black text-lg shadow-md shadow-brand-blue/30 flex-shrink-0">
-                    B
-                </div>
+                <img src="{{ asset('images/logo.png') }}" alt="Big Live Market" class="w-10 h-10 rounded-xl object-cover shadow-md shadow-blue-900/40 ring-1 ring-white/10 flex-shrink-0">
                 <div>
                     <span class="text-white font-extrabold text-sm tracking-wide flex items-center gap-1.5">
                         BIG LIVE <span class="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-brand-gold/20 text-brand-gold border border-brand-gold/30">ADMIN</span>

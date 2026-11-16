@@ -4,6 +4,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Create Free Account — Big Live Marketplace Prestige</title>
+    <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('favicon.png') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
@@ -53,9 +55,7 @@
 <body class="bg-[#F8F9FC] min-h-screen flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans selection:bg-champagne-500 selection:text-obsidian">
     <div class="sm:mx-auto sm:w-full sm:max-w-md text-center">
         <a href="/" class="inline-flex items-center gap-3 group">
-            <div class="w-11 h-11 rounded-xl gold-gradient flex items-center justify-center text-obsidian font-black text-2xl shadow-gold-glow group-hover:scale-105 transition-transform">
-                B
-            </div>
+            <img src="{{ asset('images/logo.png') }}" alt="Big Live Market" class="w-14 h-14 rounded-2xl object-cover shadow-gold-glow group-hover:scale-105 transition-transform ring-2 ring-amber-400/40">
             <div class="flex flex-col text-left">
                 <span class="text-2xl font-bold tracking-tight text-obsidian font-sans">
                     Big Live <span class="gold-text-gradient font-serif italic text-2xl font-normal">Marketplace</span>

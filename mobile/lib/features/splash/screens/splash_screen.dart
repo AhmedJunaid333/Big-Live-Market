@@ -156,34 +156,37 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                               ),
                             ),
 
-                            // 3. 3D Purple Shopping Bag Emblem inside the glowing Nexus vortex
+                            // 3. Official 3D Isometric Big Live Market Emblem inside the glowing Nexus vortex
                             Container(
-                              width: 125,
-                              height: 125,
+                              width: 140,
+                              height: 140,
                               decoration: BoxDecoration(
-                                shape: BoxShape.circle,
+                                borderRadius: BorderRadius.circular(32),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: const Color(0xFF7C3AED).withValues(alpha: 0.45),
-                                    blurRadius: 28,
-                                    spreadRadius: 2,
+                                    color: const Color(0xFF7C3AED).withValues(alpha: 0.50),
+                                    blurRadius: 32,
+                                    spreadRadius: 4,
                                   ),
                                   BoxShadow(
-                                    color: const Color(0xFF38BDF8).withValues(alpha: 0.35),
-                                    blurRadius: 16,
+                                    color: const Color(0xFF38BDF8).withValues(alpha: 0.40),
+                                    blurRadius: 20,
                                   ),
                                 ],
                               ),
-                              child: Image.asset(
-                                'assets/icons/app_logo_mark.png',
-                                fit: BoxFit.contain,
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(32),
+                                child: Image.asset(
+                                  'assets/icons/app_logo.png',
+                                  fit: BoxFit.cover,
+                                ),
                               ),
                             ),
                           ],
                         ),
                       ),
 
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 20),
 
                       // Metallic "Big Live Classified" Logo Typography
                       Container(

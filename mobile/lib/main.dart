@@ -261,11 +261,14 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Image.asset(
-                                'assets/icons/app_logo_mark.png',
-                                width: 22,
-                                height: 22,
-                                fit: BoxFit.contain,
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(5),
+                                child: Image.asset(
+                                  'assets/icons/app_logo_mark.png',
+                                  width: 22,
+                                  height: 22,
+                                  fit: BoxFit.cover,
+                                ),
                               ),
                               const SizedBox(width: 6),
                               const Text(

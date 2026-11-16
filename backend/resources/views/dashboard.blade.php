@@ -4,6 +4,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Merchant & Member Dashboard — Big Live Marketplace Prestige</title>
+    <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('favicon.png') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
@@ -55,7 +57,7 @@
     <header class="bg-obsidian text-white border-b border-slate-800 shadow-md">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-20">
             <a href="/" class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl gold-gradient flex items-center justify-center text-obsidian font-black text-xl shadow-gold-glow">B</div>
+                <img src="{{ asset('images/logo.png') }}" alt="Big Live Market" class="w-12 h-12 rounded-xl object-cover shadow-gold-glow ring-2 ring-amber-400/30">
                 <div class="flex flex-col">
                     <span class="text-xl font-bold tracking-tight text-white font-sans flex items-center gap-1.5">
                         Big Live <span class="gold-text-gradient font-serif italic text-2xl font-normal">Marketplace</span>

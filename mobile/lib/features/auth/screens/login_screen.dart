@@ -101,10 +101,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     children: [
                       // Header
                       Center(
-                        child: Image.asset(
-                          'assets/icons/app_logo.png',
-                          height: 96,
-                          fit: BoxFit.contain,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(24),
+                          child: Image.asset(
+                            'assets/icons/app_logo.png',
+                            height: 96,
+                            width: 96,
+                            fit: BoxFit.cover,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 16),
