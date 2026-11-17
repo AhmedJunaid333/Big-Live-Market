@@ -156,7 +156,30 @@ Route::get('/listings/{listing}', function ($id) {
 
 // Search & Catalog
 Route::get('/search', function (Request $request) {
-    $query = Listing::where('status', 'active')->with(['category', 'city']);
+    $category = null;
+    $parentCategory = null;
+    $subcategories = collect();
+
+    if ($request->filled('category_id')) {
+        $category = Category::with('children')->find($request->input('category_id'));
+    } elseif ($request->filled('category')) {
+        $category = Category::with('children')->where('slug', $request->input('category'))->first();
+    }
+
+    $query = Listing::where('status', 'active')->with(['category', 'city', 'seller']);
+
+    if ($category) {
+        if ($category->parent_id) {
+            $parentCategory = Category::with('children')->find($category->parent_id);
+            $subcategories = $parentCategory ? $parentCategory->children : collect();
+            $query->where('category_id', $category->id);
+        } else {
+            $childIds = $category->children->pluck('id')->push($category->id);
+            $subcategories = $category->children;
+            $parentCategory = $category;
+            $query->whereIn('category_id', $childIds);
+        }
+    }
 
     if ($request->filled('q')) {
         $q = $request->input('q');
@@ -166,7 +189,9 @@ Route::get('/search', function (Request $request) {
         });
     }
 
-    if ($request->filled('city')) {
+    if ($request->filled('city_id')) {
+        $query->where('city_id', $request->input('city_id'));
+    } elseif ($request->filled('city')) {
         $cityName = $request->input('city');
         $city = City::where('slug', $cityName)->orWhere('name', 'like', "%{$cityName}%")->first();
         if ($city) {
@@ -175,26 +200,54 @@ Route::get('/search', function (Request $request) {
     }
 
     $listings = $query->latest('id')->get();
-    $title = $request->filled('q') ? "Search: {$request->input('q')}" : "All Classifieds";
+    $cities = City::orderBy('name')->get();
+    $title = $category ? $category->name : ($request->filled('q') ? "Search: {$request->input('q')}" : "All Classifieds");
 
-    return view('search', compact('listings', 'title'));
+    return view('search', compact('listings', 'title', 'category', 'parentCategory', 'subcategories', 'cities'));
 });
 
-// Category Route
-Route::get('/category/{slug}', function ($slug) {
-    $category = Category::where('slug', $slug)->first();
-    $title = $category ? $category->name : ucfirst(str_replace('-', ' ', $slug));
+// Dedicated Category & Subcategories Explorer Route
+Route::get('/category/{slug}', function ($slug, Request $request) {
+    $category = Category::with(['children', 'parent'])->where('slug', $slug)->firstOrFail();
 
-    $query = Listing::where('status', 'active')->with(['category', 'city']);
-    if ($category) {
-        $query->where('category_id', $category->id);
+    $parentCategory = $category->parent_id ? $category->parent : $category;
+    $subcategories = $parentCategory ? $parentCategory->children()->orderBy('sort_order')->get() : collect();
+
+    $selectedSubcategory = null;
+    $query = Listing::where('status', 'active')->with(['category', 'city', 'seller']);
+
+    if ($request->filled('sub')) {
+        $selectedSubcategory = Category::where('slug', $request->input('sub'))->first();
+        if ($selectedSubcategory) {
+            $query->where('category_id', $selectedSubcategory->id);
+        }
     } else {
-        $query->where('title', 'like', "%{$slug}%");
+        if ($category->parent_id) {
+            $selectedSubcategory = $category;
+            $query->where('category_id', $category->id);
+        } else {
+            $catIds = $subcategories->pluck('id')->push($category->id);
+            $query->whereIn('category_id', $catIds);
+        }
+    }
+
+    if ($request->filled('city_id')) {
+        $query->where('city_id', $request->input('city_id'));
+    }
+
+    if ($request->filled('q')) {
+        $q = $request->input('q');
+        $query->where(function ($s) use ($q) {
+            $s->where('title', 'like', "%{$q}%")
+              ->orWhere('description', 'like', "%{$q}%");
+        });
     }
 
     $listings = $query->latest('id')->get();
+    $cities = City::orderBy('name')->get();
+    $title = $selectedSubcategory ? "{$selectedSubcategory->name} in {$parentCategory->name}" : $category->name;
 
-    return view('search', compact('listings', 'title'));
+    return view('category', compact('category', 'parentCategory', 'subcategories', 'selectedSubcategory', 'listings', 'cities', 'title'));
 });
 
 // Information / CMS Pages

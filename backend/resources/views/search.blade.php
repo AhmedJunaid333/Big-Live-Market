@@ -105,6 +105,31 @@
             </a>
         </div>
 
+        @if(isset($subcategories) && $subcategories->isNotEmpty())
+            <!-- SUBCATEGORIES FILTER STRIP -->
+            <div class="bg-white p-6 rounded-3xl border border-slate-200/90 shadow-xs mb-8">
+                <div class="flex items-center justify-between mb-3.5">
+                    <span class="text-xs font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-blue-600"></span>
+                        Explore Sub-categories ({{ $subcategories->count() }})
+                    </span>
+                    @if(isset($parentCategory))
+                        <a href="/category/{{ $parentCategory->slug }}" class="text-xs font-bold text-brand-blue hover:underline">
+                            Open {{ $parentCategory->name }} Category Page →
+                        </a>
+                    @endif
+                </div>
+                <div class="flex flex-wrap gap-2.5">
+                    @foreach($subcategories as $sub)
+                        <a href="/category/{{ $parentCategory->slug ?? '' }}?sub={{ $sub->slug }}" class="px-3.5 py-2 rounded-xl bg-slate-50 hover:bg-blue-50 text-slate-700 hover:text-blue-700 border border-slate-200 hover:border-blue-300 text-xs font-bold transition flex items-center gap-1.5 shadow-xs">
+                            <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                            <span>{{ $sub->name }}</span>
+                        </a>
+                    @endforeach
+                </div>
+            </div>
+        @endif
+
         @if($listings->isEmpty())
             <div class="bg-white border border-slate-200/80 rounded-3xl p-16 text-center shadow-soft-luxury">
                 <div class="w-20 h-20 bg-amber-50 text-champagne-600 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-amber-100 shadow-sm">

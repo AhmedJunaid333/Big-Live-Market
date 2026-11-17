@@ -191,7 +191,7 @@
                 <span>All Categories</span>
             </a>
             @foreach($parentCategories->take(8) as $cat)
-                <a href="/search?category_id={{ $cat->id }}" class="hover:text-brand-blue transition pb-1 flex items-center gap-1.5 text-slate-700 flex-shrink-0">
+                <a href="/category/{{ $cat->slug }}" class="hover:text-brand-blue transition pb-1 flex items-center gap-1.5 text-slate-700 flex-shrink-0">
                     <span>{{ $cat->name }}</span>
                     <span class="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.2 rounded-full font-semibold">{{ $cat->children_count }}</span>
                 </a>
@@ -368,21 +368,54 @@
             </a>
         </div>
 
-        <!-- 12-Card Dynamic Category Grid -->
+        <!-- 11-Card Dynamic Category Grid -->
         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 sm:gap-5">
             @php
                 $categoryThemes = [
-                    'motors' => ['bg' => 'bg-blue-50 text-blue-600 border-blue-100 group-hover:border-blue-400', 'svg' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"></path>'],
-                    'mobile-phones' => ['bg' => 'bg-purple-50 text-purple-600 border-purple-100 group-hover:border-purple-400', 'svg' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path>'],
-                    'property-for-sale' => ['bg' => 'bg-emerald-50 text-emerald-600 border-emerald-100 group-hover:border-emerald-400', 'svg' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>'],
-                    'property-for-rent' => ['bg' => 'bg-teal-50 text-teal-600 border-teal-100 group-hover:border-teal-400', 'svg' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path>'],
-                    'electronics-appliances' => ['bg' => 'bg-amber-50 text-amber-600 border-amber-100 group-hover:border-amber-400', 'svg' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>'],
-                    'bikes-motorcycles' => ['bg' => 'bg-rose-50 text-rose-600 border-rose-100 group-hover:border-rose-400', 'svg' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>'],
-                    'services' => ['bg' => 'bg-indigo-50 text-indigo-600 border-indigo-100 group-hover:border-indigo-400', 'svg' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>'],
-                    'jobs' => ['bg' => 'bg-cyan-50 text-cyan-600 border-cyan-100 group-hover:border-cyan-400', 'svg' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>'],
-                    'animals' => ['bg' => 'bg-green-50 text-green-600 border-green-100 group-hover:border-green-400', 'svg' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>'],
-                    'furniture-home-decor' => ['bg' => 'bg-orange-50 text-orange-600 border-orange-100 group-hover:border-orange-400', 'svg' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>'],
-                    'fashion-beauty' => ['bg' => 'bg-pink-50 text-pink-600 border-pink-100 group-hover:border-pink-400', 'svg' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>'],
+                    'motors' => [
+                        'bg' => 'bg-blue-50 text-blue-600 border-blue-100 group-hover:border-blue-400',
+                        'svg' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1"></path>'
+                    ],
+                    'mobile-phones' => [
+                        'bg' => 'bg-purple-50 text-purple-600 border-purple-100 group-hover:border-purple-400',
+                        'svg' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path>'
+                    ],
+                    'property-for-sale' => [
+                        'bg' => 'bg-emerald-50 text-emerald-600 border-emerald-100 group-hover:border-emerald-400',
+                        'svg' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>'
+                    ],
+                    'property-for-rent' => [
+                        'bg' => 'bg-teal-50 text-teal-600 border-teal-100 group-hover:border-teal-400',
+                        'svg' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path>'
+                    ],
+                    'electronics-appliances' => [
+                        'bg' => 'bg-amber-50 text-amber-600 border-amber-100 group-hover:border-amber-400',
+                        'svg' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>'
+                    ],
+                    'bikes-motorcycles' => [
+                        'bg' => 'bg-rose-50 text-rose-600 border-rose-100 group-hover:border-rose-400',
+                        'svg' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18a4 4 0 100-8 4 4 0 000 8zM18 18a4 4 0 100-8 4 4 0 000 8zM6 14h3l3-5h5l2 5M12 9l-2-4h-3"></path>'
+                    ],
+                    'services' => [
+                        'bg' => 'bg-indigo-50 text-indigo-600 border-indigo-100 group-hover:border-indigo-400',
+                        'svg' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>'
+                    ],
+                    'jobs' => [
+                        'bg' => 'bg-cyan-50 text-cyan-600 border-cyan-100 group-hover:border-cyan-400',
+                        'svg' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>'
+                    ],
+                    'animals' => [
+                        'bg' => 'bg-green-50 text-green-600 border-green-100 group-hover:border-green-400',
+                        'svg' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>'
+                    ],
+                    'furniture-home-decor' => [
+                        'bg' => 'bg-orange-50 text-orange-600 border-orange-100 group-hover:border-orange-400',
+                        'svg' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>'
+                    ],
+                    'fashion-beauty' => [
+                        'bg' => 'bg-pink-50 text-pink-600 border-pink-100 group-hover:border-pink-400',
+                        'svg' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>'
+                    ],
                 ];
             @endphp
 
@@ -390,7 +423,7 @@
                 @php
                     $theme = $categoryThemes[$cat->slug] ?? ['bg' => 'bg-slate-50 text-slate-600 border-slate-100 group-hover:border-brand-blue', 'svg' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>'];
                 @endphp
-                <a href="/search?category_id={{ $cat->id }}" class="group bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-card-hover hover:-translate-y-1 transition-all duration-300 flex flex-col items-center text-center">
+                <a href="/category/{{ $cat->slug }}" class="group bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-card-hover hover:border-brand-blue/50 hover:-translate-y-1 transition-all duration-300 flex flex-col items-center text-center">
                     <div class="w-14 h-14 rounded-2xl {{ $theme['bg'] }} flex items-center justify-center mb-3.5 border transition-transform duration-300 group-hover:scale-110 shadow-xs">
                         <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             {!! $theme['svg'] !!}
@@ -399,8 +432,8 @@
                     <h3 class="font-bold text-slate-800 text-xs sm:text-sm group-hover:text-brand-blue transition line-clamp-1 mb-1">
                         {{ $cat->name }}
                     </h3>
-                    <span class="text-[11px] text-slate-400 font-medium">
-                        {{ $cat->children_count }} sub-types
+                    <span class="text-[11px] text-brand-blue font-bold bg-blue-50/60 px-2 py-0.5 rounded-full mt-0.5">
+                        {{ $cat->children_count }} sub-types →
                     </span>
                 </a>
             @endforeach
